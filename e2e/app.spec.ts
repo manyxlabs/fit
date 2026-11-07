@@ -55,6 +55,7 @@ test('a workout is logged, and the next session asks for more', async ({ page })
     await card.getByLabel('kg', { exact: true }).fill('60');
     await card.getByLabel('Reps', { exact: true }).fill('30');
     await card.getByRole('button', { name: 'Log' }).click();
+    await expect(card.locator('li.done')).toHaveCount(i + 1);
   }
   await expect(page.getByRole('timer')).toBeVisible();
   await page.reload(); // the workout in progress survives a reload
