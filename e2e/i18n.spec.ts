@@ -48,7 +48,8 @@ const overflowing = (page: Page) =>
 async function shoot(page: Page, name: string) {
   for (const scheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: scheme });
-    await page.screenshot({ path: `test-results/artifacts/i18n/${name}-${scheme}.png`, fullPage: true });
+    // Finishes the eased change of theme, which would otherwise be caught halfway.
+    await page.screenshot({ path: `test-results/artifacts/i18n/${name}-${scheme}.png`, fullPage: true, animations: 'disabled' });
   }
   await page.emulateMedia({ colorScheme: 'light' });
 }
