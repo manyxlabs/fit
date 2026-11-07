@@ -3,8 +3,8 @@
 // Times are kept as wall-clock milliseconds (local time read as if it were UTC), so a day is the
 // calendar day the person lived, whatever zone the phone was in.
 
-export const KINDS = { weight: 'Weight', bodyFat: 'Body fat', steps: 'Steps', sleep: 'Sleep', restingHr: 'Resting heart rate' } as const;
-export type Kind = keyof typeof KINDS;
+export const KINDS = ['weight', 'bodyFat', 'steps', 'sleep', 'restingHr'] as const;
+export type Kind = (typeof KINDS)[number];
 export type Result = { sources: string[]; series: Record<Kind, [date: string, value: number][]> };
 
 const HOUR = 3_600_000;

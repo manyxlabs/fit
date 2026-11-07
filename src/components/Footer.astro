@@ -1,17 +1,21 @@
 ---
+import { pageLocale } from '../i18n';
+import { localePath } from '../i18n/locales';
 import { EMAIL, LABS, REPO } from '../site';
+
+const { t, href, health } = pageLocale(Astro.url);
 ---
 
 <footer class="wrap">
-  <p class="note">General fitness information and estimates, not medical advice. See a doctor before starting if you have a medical condition, are pregnant, or are under 18.</p>
+  <p class="note">{t.footer.disclaimer}</p>
   <div class="foot">
-    <p>&copy; {new Date().getFullYear()} <a href={LABS}>Manyx Labs</a>, Bengaluru</p>
-    <nav aria-label="Elsewhere">
-      <a href="/exercises/">Exercises</a>
-      <a href="/privacy/">Privacy</a>
-      <a href={REPO} target="_blank" rel="noopener">Source</a>
-      <a href={`${REPO}/issues/new`} target="_blank" rel="noopener">Report an issue</a>
-      <a href={`mailto:${EMAIL}`}>Email</a>
+    <p>&copy; {new Date().getFullYear()} <a href={LABS}>Manyx Labs</a>, {t.footer.place}</p>
+    <nav aria-label={t.footer.nav}>
+      <a href={localePath(health, '/exercises/')}>{t.footer.exercises}</a>
+      <a href={href('/privacy/')}>{t.footer.privacy}</a>
+      <a href={REPO} target="_blank" rel="noopener">{t.footer.source}</a>
+      <a href={`${REPO}/issues/new`} target="_blank" rel="noopener">{t.footer.issue}</a>
+      <a href={`mailto:${EMAIL}`}>{t.footer.email}</a>
     </nav>
   </div>
 </footer>

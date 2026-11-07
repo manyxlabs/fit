@@ -16,14 +16,17 @@ const EATS: Record<Diet, Diet[]> = {
 };
 export const fits = (food: Diet, eater: Diet) => EATS[eater].includes(food);
 
+// Indic spellings differ only in zero-width joiners (സാൻഡ്‌വിച്ച് with or without one), which few people type.
+const norm = (s: string) => s.toLowerCase().replace(/[\u200c\u200d]/g, '');
+
 /** Name matches first, then alias matches; every word typed must appear. */
 export function search<T extends { name: string; aliases?: string[] }>(list: T[], query: string, limit = 30) {
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const words = norm(query).split(/\s+/).filter(Boolean);
   if (!words.length) return [];
   const score = (f: T) => {
     const name = f.name.toLowerCase();
     if (words.every((w) => name.includes(w))) return name.startsWith(words[0]) ? 0 : 1;
-    const hay = [name, ...(f.aliases ?? [])].join(' ').toLowerCase();
+    const hay = norm([name, ...(f.aliases ?? [])].join(' '));
     return words.every((w) => hay.includes(w)) ? 2 : -1;
   };
   return list

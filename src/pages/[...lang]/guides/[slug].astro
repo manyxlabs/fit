@@ -1,0 +1,46 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { guides } from '../../../guides';
+import { pageLocale } from '../../../i18n';
+import { appHref, langParams } from '../../../i18n/locales';
+import { HEALTH_LOCALES } from '../../../i18n/review';
+import { SITE } from '../../../site';
+import '../../../styles/pages.css';
+
+export const getStaticPaths = () =>
+  HEALTH_LOCALES.flatMap((l, n) => {
+    const list = guides(l);
+    return list.map((g, i) => ({ params: { lang: langParams(HEALTH_LOCALES)[n], slug: g.slug }, props: { g, next: list[(i + 1) % list.length]! } }));
+  });
+const { g, next } = Astro.props;
+const { Content } = g;
+const { locale, t, href } = pageLocale(Astro.url);
+---
+
+<Base
+  og={`guide-${g.slug}`}
+  title={g.title}
+  description={g.description}
+  locales={HEALTH_LOCALES}
+  schema={[{ '@type': 'Article', headline: g.title, description: g.description, inLanguage: locale, url: new URL(href(`/guides/${g.slug}/`), SITE).href, publisher: { '@type': 'Organization', name: 'Manyx Labs' } }]}
+>
+  <Header locales={HEALTH_LOCALES} />
+  <main class="wrap page">
+    <p class="crumbs"><a href={href('/guides/')}>{t.guides.crumb}</a></p>
+    <article class="prose">
+      <h1>{g.title}</h1>
+      <Content />
+    </article>
+    <section class="cta glass">
+      <div>
+        <h2>{t.guides.ctaHeading}</h2>
+        <p>{t.guides.cta}</p>
+      </div>
+      <a class="btn primary" href={appHref(locale)}>{t.guides.openApp}</a>
+    </section>
+    <p class="next">{t.guides.next} <a href={href(`/guides/${next.slug}/`)}>{next.title}</a></p>
+  </main>
+  <Footer />
+</Base>

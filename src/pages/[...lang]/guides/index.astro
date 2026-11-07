@@ -1,0 +1,35 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { guides } from '../../../guides';
+import { pageLocale } from '../../../i18n';
+import { langParams } from '../../../i18n/locales';
+import { HEALTH_LOCALES } from '../../../i18n/review';
+import '../../../styles/pages.css';
+
+// Guides are health advice, so a language has them only once its review is done (see review.ts).
+export const getStaticPaths = () => langParams(HEALTH_LOCALES).map((lang) => ({ params: { lang } }));
+const { locale, t, href } = pageLocale(Astro.url);
+---
+
+<Base og="guides" title={t.guides.title} description={t.guides.description} locales={HEALTH_LOCALES}>
+  <Header locales={HEALTH_LOCALES} />
+  <main class="wrap page">
+    <h1>{t.guides.heading}</h1>
+    <p class="lede">{t.guides.lede}</p>
+    <ul class="tiles">
+      {
+        guides(locale).map((g) => (
+          <li>
+            <a class="tile glass" href={href(`/guides/${g.slug}/`)}>
+              <strong>{g.title}</strong>
+              <span>{g.description}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </main>
+  <Footer />
+</Base>

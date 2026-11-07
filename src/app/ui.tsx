@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { fmt } from '../lib/fmt';
 import { addDays } from './db';
+import { date, t } from './i18n';
 
 export { fmt };
 
@@ -38,14 +39,14 @@ export function Bar(props: { label: string; value: number; target: number; unit:
 }
 
 export function DateNav(props: { date: string; onChange: (d: string) => void; max: string }) {
-  const label = new Date(`${props.date}T12:00:00`).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+  const label = date(props.date, { weekday: 'long', day: 'numeric', month: 'long' });
   return (
     <div className="datenav">
-      <button type="button" className="icon-btn" aria-label="Previous day" onClick={() => props.onChange(addDays(props.date, -1))}>
+      <button type="button" className="icon-btn" aria-label={t.shell.previousDay} onClick={() => props.onChange(addDays(props.date, -1))}>
         ‹
       </button>
-      <h1>{props.date === props.max ? 'Today' : label}</h1>
-      <button type="button" className="icon-btn" aria-label="Next day" disabled={props.date >= props.max} onClick={() => props.onChange(addDays(props.date, 1))}>
+      <h1>{props.date === props.max ? t.shell.today : label}</h1>
+      <button type="button" className="icon-btn" aria-label={t.shell.nextDay} disabled={props.date >= props.max} onClick={() => props.onChange(addDays(props.date, 1))}>
         ›
       </button>
     </div>

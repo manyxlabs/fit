@@ -1,7 +1,10 @@
 ---
 import '@fontsource-variable/inter';
-// Latin covers every page's text, so fetching it early keeps the swap from shifting layout late.
+// Every page has Latin text, even in Indian scripts (numbers, units, names), so fetching it early keeps the swap from shifting layout late.
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import { pageLocale } from '../i18n';
+import { FONTS, fontFace } from '../i18n/fonts';
+import { LOCALES, localePath, type Locale } from '../i18n/locales';
 import { BRAND, ogImage } from '../site';
 
 type Props = {
@@ -10,10 +13,14 @@ type Props = {
   description: string;
   /** schema.org objects, for search results. */
   schema?: Record<string, unknown>[];
+  /** The languages this page is published in, for its hreflang alternates; all unless it waits for a review. */
+  locales?: readonly Locale[];
   /** The share card's slug in public/og/; every page search engines see has one. */
 } & ({ og: string; noindex?: never } | { og?: string; noindex: true });
 
-const { title, description, schema = [], noindex, og } = Astro.props;
+const { title, description, schema = [], noindex, og, locales = LOCALES } = Astro.props;
+const { locale, path } = pageLocale(Astro.url);
+const font = locale === 'en' ? undefined : FONTS[locale];
 const brand = ` - ${BRAND}`;
 const fullTitle = title.length + brand.length <= 60 ? title + brand : title;
 // "</script>" inside a string would end the tag early.
@@ -22,13 +29,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+    {font && <link rel="preload" href={font.url} as="font" type="font/woff2" crossorigin />}
+    {font && <style is:inline set:html={`${fontFace(font)}:root{--script:'${font.family}'}`} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -42,6 +51,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         <>
           <link rel="canonical" href={canonical} />
           <meta property="og:url" content={canonical} />
+          {locales.length > 1 && locales.map((l) => <link rel="alternate" hreflang={l} href={new URL(localePath(l, path), Astro.site)} />)}
+          {locales.length > 1 && <link rel="alternate" hreflang="x-default" href={new URL(path, Astro.site)} />}
         </>
       )
     }
@@ -50,7 +61,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         <>
           <meta property="og:type" content="website" />
           <meta property="og:site_name" content={BRAND} />
-          <meta property="og:locale" content="en_IN" />
+          <meta property="og:locale" content={`${locale}_IN`} />
           <meta property="og:title" content={title} />
           <meta property="og:description" content={description} />
           <meta property="og:image" content={ogImage(og)} />
@@ -121,7 +132,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     min-height: 100vh;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter Variable', system-ui, sans-serif;
+    font-family: 'Inter Variable', var(--script, system-ui), system-ui, sans-serif;
     font-size: 1rem;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;

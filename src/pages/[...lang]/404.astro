@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { pageLocale } from '../../i18n';
+import { langParams } from '../../i18n/locales';
+
+export const getStaticPaths = () => langParams().map((lang) => ({ params: { lang } }));
+const { t, href } = pageLocale(Astro.url);
+---
+
+<Base title={t.missing.title} description={t.missing.description} noindex>
+  <Header />
+  <main class="wrap missing">
+    <h1>{t.missing.heading}</h1>
+    <p>{t.missing.body}</p>
+    <a class="btn primary" href={href('/')}>{t.missing.home}</a>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .missing {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+    padding-block: 64px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+</style>

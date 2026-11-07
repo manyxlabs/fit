@@ -1,0 +1,127 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import MuscleMap from '../../../components/MuscleMap.astro';
+import { alternatives, EXERCISES, exerciseSlug, type Exercise, type ExerciseId, type Muscle } from '../../../data/exercises';
+import { breathing, dose } from '../../../data/exercise-guides';
+import { pageLocale } from '../../../i18n';
+import { fill } from '../../../i18n/intl';
+import { appHref, langParams } from '../../../i18n/locales';
+import { HEALTH_LOCALES } from '../../../i18n/review';
+import { SITE } from '../../../site';
+import '../../../styles/pages.css';
+
+export const getStaticPaths = () => langParams(HEALTH_LOCALES).flatMap((lang) => (Object.keys(EXERCISES) as ExerciseId[]).map((id) => ({ params: { lang, slug: exerciseSlug(id) }, props: { id } })));
+const { id } = Astro.props;
+const { locale, t, data, howto, href } = pageLocale(Astro.url);
+const x = t.exercises;
+const ex: Exercise = EXERCISES[id];
+const how = howto.exercises[id];
+const cue = data.exerciseCues[id];
+const names = (ms: Muscle[]) => ms.map((m) => data.muscles[m]).join(', ');
+// Someone reading about a bar exercise has a bar; anyone else may not.
+const swaps = ex.setups.map((s) => [data.equipment[s], alternatives(id, s, !!ex.bar)] as const).filter(([, a]) => a.length);
+const steps = how.steps.filter((s) => s !== undefined);
+const kind = dose(id);
+const who = howto.doseWho;
+const doses: [string, string][] = [[who.beginners, howto.dose[kind][0]], [kind === 'hold' ? who.hold : kind === 'conditioning' ? who.conditioning : who.muscle, howto.dose[kind][1]]];
+---
+
+<Base
+  og="exercises"
+  title={fill(x.pageTitle, { name: ex.name })}
+  description={fill(x.pageDescription, { name: ex.name.toLowerCase() })}
+  locales={HEALTH_LOCALES}
+  schema={[
+    {
+      '@type': 'HowTo',
+      name: fill(x.howToName, { name: ex.name.toLowerCase() }),
+      description: cue,
+      inLanguage: locale,
+      url: new URL(href(`/exercises/${exerciseSlug(id)}/`), SITE).href,
+      tool: [{ '@type': 'HowToTool', name: how.gear }],
+      step: steps.map((text, i) => ({ '@type': 'HowToStep', position: i + 1, text })),
+    },
+  ]}
+>
+  <Header locales={HEALTH_LOCALES} />
+
+  <main class="wrap page">
+    <p class="crumbs"><a href={href('/exercises/')}>{x.crumb}</a></p>
+    <h1>{ex.name}</h1>
+    <p class="lede">{cue}</p>
+    <section class="ex-top">
+      <MuscleMap primary={ex.primary} secondary={ex.secondary} />
+      <dl class="facts">
+        <div>
+          <dt>{x.main}</dt>
+          <dd>{names(ex.primary)}</dd>
+        </div>
+        {
+          ex.secondary.length > 0 && (
+            <div>
+              <dt>{x.assisting}</dt>
+              <dd>{names(ex.secondary)}</dd>
+            </div>
+          )
+        }
+        <div>
+          <dt>{x.equipment}</dt>
+          <dd>{how.gear}</dd>
+        </div>
+        <div>
+          <dt>{x.worksFor}</dt>
+          <dd>{[...ex.setups.map((s) => data.equipment[s]), ...(ex.bar ? [x.withBar] : [])].join(', ')}</dd>
+        </div>
+      </dl>
+    </section>
+    <article class="prose">
+      <h2>{x.howTo}</h2>
+      <ol>{steps.map((s) => <li>{s}</li>)}</ol>
+      <h2>{x.mistakes}</h2>
+      <ul>{how.mistakes.filter(Boolean).map((s) => <li>{s}</li>)}</ul>
+      <h2>{x.breathing}</h2>
+      <p>{how.breath ?? howto.breathing[breathing(id)]}</p>
+      <h2>{x.harderEasier}</h2>
+      <p><strong>{x.harder}</strong> {how.harder}</p>
+      <p><strong>{x.easier}</strong> {how.easier}</p>
+      <h2>{x.dose}</h2>
+      {
+        doses.map(([who, what]) => (
+          <p>
+            <strong>{who}:</strong> {what}
+          </p>
+        ))
+      }
+      <h2>{x.safety}</h2>
+      <ul>{how.safety.map((s) => <li>{s}</li>)}</ul>
+      <h2>{x.swaps}</h2>
+      {
+        swaps.length ? (
+          swaps.map(([setup, alts]) => (
+            <p>
+              <strong>{setup}:</strong>{' '}
+              {alts.map((a, i) => (
+                <>
+                  {i > 0 && ', '}
+                  <a href={href(`/exercises/${exerciseSlug(a)}/`)}>{EXERCISES[a].name}</a>
+                </>
+              ))}
+            </p>
+          ))
+        ) : (
+          <p>{x.noSwaps}</p>
+        )
+      }
+    </article>
+    <section class="cta glass">
+      <div>
+        <h2>{x.ctaHeading}</h2>
+        <p>{x.cta}</p>
+      </div>
+      <a class="btn primary" href={appHref(locale)}>{x.openApp}</a>
+    </section>
+  </main>
+  <Footer />
+</Base>

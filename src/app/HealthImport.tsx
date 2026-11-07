@@ -3,6 +3,8 @@ import { db, type Day, type Measurement } from './db';
 import { KINDS, type Kind, type Result } from './health/parse';
 import type { Reply, Request } from './health/worker';
 import { useBump } from './hooks';
+import { rich } from '../i18n/rich';
+import { date, fill, plural, t } from './i18n';
 import { Card, fmt } from './ui';
 
 /** Where each kind lands: the store and the field within its row for the day. */
@@ -25,9 +27,12 @@ async function current(tx?: { objectStore(s: Store): { getAll(): Promise<unknown
 const has = (rows: Awaited<ReturnType<typeof current>>, kind: Kind, date: string) => rows[TARGET[kind][0]].get(date)?.[TARGET[kind][1]] !== undefined;
 
 // Unbroken, so a narrow phone never strands the year on its own line.
-const short = (date: string) => <span style={{ whiteSpace: 'nowrap' }}>{new Date(`${date}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>;
+const nowrap = (s: string) => <span style={{ whiteSpace: 'nowrap' }}>{s}</span>;
+const short = (d: string) => date(d, { day: 'numeric', month: 'short', year: 'numeric' });
+const b = (s: string) => <strong>{s}</strong>;
 
-const ALL = Object.keys(KINDS) as Kind[];
+const c = t.progress.import;
+const list = (sources: string[]) => sources.reduce((a, b2) => fill(c.and, { a, b: b2 }));
 
 type State = { progress: number } | { result: Result; rows: Awaited<ReturnType<typeof current>> } | { done: number; sources: string[] } | { error: string };
 
@@ -45,11 +50,11 @@ export function HealthImport() {
     worker.onmessage = async ({ data }: MessageEvent<Reply>) => {
       if ('progress' in data) return setState({ progress: data.progress });
       worker.terminate();
-      if ('error' in data) return setState({ error: data.error });
-      if (!Object.values(data.result.series).some((s) => s.length)) return setState({ error: 'These files have no weight, steps, sleep, body fat or resting heart rate to import.' });
+      if ('error' in data) return setState({ error: fill(c.errors[data.error], { file: data.file }) });
+      if (!Object.values(data.result.series).some((s) => s.length)) return setState({ error: c.errors.empty });
       setState({ result: data.result, rows: await current() });
     };
-    worker.onerror = () => (worker.terminate(), setState({ error: 'This browser could not read the files.' }));
+    worker.onerror = () => (worker.terminate(), setState({ error: c.errors.unreadable }));
     worker.postMessage(files satisfies Request);
   }
 
@@ -59,7 +64,7 @@ export function HealthImport() {
     const rows = await current(tx);
     const writes: Promise<unknown>[] = [];
     let n = 0;
-    for (const kind of ALL) {
+    for (const kind of KINDS) {
       if (skip.includes(kind)) continue;
       const [store, field] = TARGET[kind];
       for (const [date, value] of result.series[kind]) {
@@ -75,41 +80,32 @@ export function HealthImport() {
     bump();
   }
 
-  const found = state && 'result' in state ? ALL.filter((k) => state.result.series[k].length) : [];
+  const found = state && 'result' in state ? KINDS.filter((k) => state.result.series[k].length) : [];
   return (
-    <Card title="Import from a health app">
-      <p className="hint">Bring in weight, steps, sleep, body fat and resting heart rate. The files are read here in the browser and never uploaded.</p>
+    <Card title={c.title}>
+      <p className="hint">{c.about}</p>
       <details>
-        <summary>How to export your data</summary>
+        <summary>{c.howTo}</summary>
         <ul className="howto">
-          <li>
-            <strong>iPhone (Apple Health)</strong>: open Health, tap your picture, then Export All Health Data. Save export.zip to Files and choose it here.
-          </li>
-          <li>
-            <strong>Samsung Health</strong>: open Settings in Samsung Health, then Download personal data. Choose all the CSV files from the folder it saves in Download/Samsung Health, or a zip of that folder.
-          </li>
-          <li>
-            <strong>Google Fit</strong>: at takeout.google.com, select only Fit, and choose the zip it gives you.
-          </li>
-          <li>
-            <strong>Health Connect</strong>: its own export is a database this page cannot read yet, so export from the app that writes to it, such as Samsung Health or Google Fit.
-          </li>
+          {[c.apple, c.samsung, c.googleFit, c.healthConnect].map((s) => (
+            <li key={s}>{rich(s, { b })}</li>
+          ))}
         </ul>
       </details>
       {state && 'progress' in state ? (
-        <div className="bar-track" role="progressbar" aria-label="Reading the export" aria-valuenow={Math.round(state.progress * 100)}>
+        <div className="bar-track" role="progressbar" aria-label={c.reading} aria-valuenow={Math.round(state.progress * 100)}>
           <div style={{ width: `${state.progress * 100}%` }} />
         </div>
       ) : state && 'result' in state ? (
         <form
           className="stack"
-          aria-label="Import preview"
+          aria-label={c.preview}
           onSubmit={(e) => {
             e.preventDefault();
             save(state.result);
           }}
         >
-          <p>From {state.result.sources.join(' and ')}:</p>
+          <p>{fill(c.from, { sources: list(state.result.sources) })}</p>
           <ul className="checks">
             {found.map((kind) => {
               const s = state.result.series[kind];
@@ -119,9 +115,8 @@ export function HealthImport() {
                   <label className="check">
                     <input type="checkbox" checked={!skip.includes(kind)} onChange={(e) => setSkip(e.target.checked ? skip.filter((k) => k !== kind) : [...skip, kind])} />
                     <span>
-                      <strong>{KINDS[kind]}</strong>: {fmt(s.length)} {s.length === 1 ? 'day' : 'days'}, {short(s[0][0])}
-                      {s.length > 1 && <> to {short(s.at(-1)![0])}</>}
-                      {here > 0 && <span className="muted"> ({fmt(here)} already logged)</span>}
+                      {rich(fill(s.length > 1 ? c.range : c.oneDay, { kind: c.kinds[kind], days: plural(s.length, c.days), from: short(s[0][0]), to: short(s.at(-1)![0]) }), { b, d: nowrap })}
+                      {here > 0 && <span className="muted"> {fill(c.alreadyLogged, { n: fmt(here) })}</span>}
                     </span>
                   </label>
                 </li>
@@ -129,36 +124,34 @@ export function HealthImport() {
             })}
           </ul>
           <fieldset className="seg">
-            <legend>Days you already logged</legend>
+            <legend>{c.existing}</legend>
             <label>
               <input type="radio" name="replace" checked={!replace} onChange={() => setReplace(false)} />
-              Keep mine
+              {c.keepMine}
             </label>
             <label>
               <input type="radio" name="replace" checked={replace} onChange={() => setReplace(true)} />
-              Use imported
+              {c.useImported}
             </label>
           </fieldset>
           <div className="row">
             <button type="submit" className="btn primary" disabled={found.every((k) => skip.includes(k))}>
-              Import
+              {c.import}
             </button>
             <button type="button" className="btn" onClick={() => setState(undefined)}>
-              Cancel
+              {t.progress.cancel}
             </button>
           </div>
         </form>
       ) : (
         <>
           {state && 'done' in state && (
-            <p role="status">
-              Imported {fmt(state.done)} {state.done === 1 ? 'entry' : 'entries'} from {state.sources.join(' and ')}.
-            </p>
+            <p role="status">{fill(plural(state.done, c.done), { sources: list(state.sources) })}</p>
           )}
           {state && 'error' in state && <p className="error">{state.error}</p>}
           <label className="drop">
-            <strong>Choose export files</strong>
-            <span>export.zip, Takeout zip or Samsung Health CSVs</span>
+            <strong>{c.choose}</strong>
+            <span>{c.accepts}</span>
             <input type="file" multiple accept=".zip,.xml,.csv,application/zip,text/xml,text/csv" onChange={(e) => (read([...(e.target.files ?? [])]), (e.target.value = ''))} />
           </label>
         </>

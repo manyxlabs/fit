@@ -1,0 +1,42 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { EXERCISES, exerciseSlug, MUSCLES, type ExerciseId, type Muscle } from '../../../data/exercises';
+import { pageLocale } from '../../../i18n';
+import { fill } from '../../../i18n/intl';
+import { langParams } from '../../../i18n/locales';
+import { HEALTH_LOCALES } from '../../../i18n/review';
+import '../../../styles/pages.css';
+
+// How-tos are health advice, so a language has these pages only once its review is done (see review.ts).
+export const getStaticPaths = () => langParams(HEALTH_LOCALES).map((lang) => ({ params: { lang } }));
+const { t, data, href } = pageLocale(Astro.url);
+const ids = Object.keys(EXERCISES) as ExerciseId[];
+const groups = (Object.keys(MUSCLES) as Muscle[]).map((m) => [m, ids.filter((id) => EXERCISES[id].primary[0] === m)] as const).filter(([, list]) => list.length);
+---
+
+<Base og="exercises" title={t.exercises.title} description={fill(t.exercises.description, { count: ids.length })} locales={HEALTH_LOCALES}>
+  <Header locales={HEALTH_LOCALES} />
+  <main class="wrap page">
+    <h1>{t.exercises.heading}</h1>
+    <p class="lede">{t.exercises.lede}</p>
+    <div class="ex-groups">
+      {
+        groups.map(([m, list]) => (
+          <section>
+            <h2>{data.muscles[m]}</h2>
+            <ul class="links">
+              {list.map((id) => (
+                <li>
+                  <a href={href(`/exercises/${exerciseSlug(id)}/`)}>{EXERCISES[id].name}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </main>
+  <Footer />
+</Base>

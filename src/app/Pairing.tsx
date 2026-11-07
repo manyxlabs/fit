@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { encode } from 'uqr';
+import { date, fill, t } from './i18n';
 import { pair, removeDevice, syncNow, turnOff, turnOn, useSyncState, type SyncState } from './sync';
 import { Card } from './ui';
 
@@ -8,19 +9,20 @@ function Qr({ text }: { text: string }) {
   const { size, data } = encode(text, { ecc: 'M', border: 2 });
   const path = data.flatMap((row, y) => row.flatMap((dark, x) => (dark ? [`M${x} ${y}h1v1h-1z`] : []))).join('');
   return (
-    <svg className="qr" viewBox={`0 0 ${size} ${size}`} shapeRendering="crispEdges" role="img" aria-label="QR code of the sync link">
+    <svg className="qr" viewBox={`0 0 ${size} ${size}`} shapeRendering="crispEdges" role="img" aria-label={c.qr}>
       <rect width={size} height={size} fill="#fff" />
       <path d={path} fill="#111" />
     </svg>
   );
 }
 
-const time = (at: number) => new Date(at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+const c = t.more.sync;
+
 function status(s: SyncState) {
-  if (s.status === 'syncing') return 'Syncing...';
-  if (s.status === 'offline') return 'Offline. Changes made here will sync when you are back online.';
+  if (s.status === 'syncing') return c.syncing;
+  if (s.status === 'offline') return c.offline;
   if (s.status === 'error') return s.problem;
-  return s.last ? `Synced at ${time(s.last)}` : 'Not synced yet';
+  return s.last ? fill(c.synced, { time: date(s.last, { hour: 'numeric', minute: '2-digit' }) }) : c.never;
 }
 
 /** Runs an action, showing its error, and keeps its button disabled meanwhile. */
@@ -50,11 +52,8 @@ export function SyncCard() {
 
   if (!s.on)
     return (
-      <Card title="Sync">
-        <p className="hint">
-          Keep your phone, laptop and other devices in step. Everything is encrypted on this device before it leaves, with a key only your devices hold, so the server stores
-          scrambled data it cannot read.
-        </p>
+      <Card title={c.title}>
+        <p className="hint">{c.about}</p>
         {s.problem && <p className="error">{s.problem}</p>}
         <div className="row">
           <button
@@ -66,7 +65,7 @@ export function SyncCard() {
               await turnOn();
             })}
           >
-            Turn on sync
+            {c.turnOn}
           </button>
         </div>
         {error && <p className="error">{error}</p>}
@@ -74,18 +73,18 @@ export function SyncCard() {
     );
 
   return (
-    <Card title="Sync">
+    <Card title={c.title}>
       <p className={s.status === 'error' ? 'error' : 'hint'} role="status">
         {status(s)}
       </p>
       <details open={fresh}>
-        <summary>Add another device</summary>
+        <summary>{c.addDevice}</summary>
         <div className="pair">
           <Qr text={s.link!} />
           <div className="stack">
-            <p className="hint">Scan the code with your other device's camera, or open the link there. Anyone with the link can read your data, so keep it to your own devices.</p>
+            <p className="hint">{c.scan}</p>
             <div className="row">
-              <input className="link" readOnly value={s.link} aria-label="Sync link" onFocus={(e) => e.currentTarget.select()} />
+              <input className="link" readOnly value={s.link} aria-label={c.link} onFocus={(e) => e.currentTarget.select()} />
               <button
                 type="button"
                 className="btn"
@@ -95,7 +94,7 @@ export function SyncCard() {
                   setTimeout(() => setCopied(false), 1500);
                 }}
               >
-                {copied ? 'Copied' : 'Copy link'}
+                {copied ? c.copied : c.copy}
               </button>
             </div>
           </div>
@@ -103,21 +102,21 @@ export function SyncCard() {
       </details>
       <div className="row">
         <button type="button" className="btn" disabled={busy || s.status === 'syncing'} onClick={act(syncNow)}>
-          Sync now
+          {c.syncNow}
         </button>
-        <button type="button" className="btn" disabled={busy} onClick={act(async () => confirm('Stop syncing on this device? Your other devices carry on.') && removeDevice())}>
-          Remove this device
+        <button type="button" className="btn" disabled={busy} onClick={act(async () => confirm(c.confirmRemove) && removeDevice())}>
+          {c.remove}
         </button>
         <button
           type="button"
           className="btn danger"
           disabled={busy}
-          onClick={act(async () => confirm('Turn off sync on every device, and delete the encrypted copy from the server? Each device keeps its own data.') && turnOff())}
+          onClick={act(async () => confirm(c.confirmTurnOff) && turnOff())}
         >
-          Turn off sync
+          {c.turnOff}
         </button>
       </div>
-      <p className="hint">Each device keeps its data either way. To delete the copy on the server, turn off sync from any device that is still paired.</p>
+      <p className="hint">{c.keeps}</p>
       {error && <p className="error">{error}</p>}
     </Card>
   );
@@ -128,10 +127,10 @@ export function Join({ secret, done }: { secret: string; done: () => void }) {
   const { busy, error, act } = useAction();
   return (
     <main className="wrap onboard">
-      <h1>Sync with your other device</h1>
+      <h1>{c.join.title}</h1>
       <div className="card glass">
-        <p>This device will keep in step with the one that showed you this link. What is on each is combined, and changes on either appear on both.</p>
-        <p className="hint">Only continue if the link came from one of your own devices: anyone with it can read your data.</p>
+        <p>{c.join.about}</p>
+        <p className="hint">{c.join.warning}</p>
         <div className="row">
           <button
             type="button"
@@ -142,10 +141,10 @@ export function Join({ secret, done }: { secret: string; done: () => void }) {
               done();
             })}
           >
-            {busy ? 'Syncing...' : 'Start syncing'}
+            {busy ? c.syncing : c.join.start}
           </button>
           <button type="button" className="btn" disabled={busy} onClick={done}>
-            Not now
+            {c.join.notNow}
           </button>
         </div>
         {error && <p className="error">{error}</p>}

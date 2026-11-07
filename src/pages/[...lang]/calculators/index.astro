@@ -1,0 +1,33 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { CALCULATORS } from '../../../calcs/list';
+import { pageLocale } from '../../../i18n';
+import { langParams } from '../../../i18n/locales';
+import '../../../styles/pages.css';
+
+export const getStaticPaths = () => langParams().map((lang) => ({ params: { lang } }));
+const { t, calc, href } = pageLocale(Astro.url);
+---
+
+<Base og="calculators" title={t.calculators.title} description={t.calculators.description}>
+  <Header />
+  <main class="wrap page">
+    <h1>{t.calculators.heading}</h1>
+    <p class="lede">{t.calculators.lede}</p>
+    <ul class="tiles">
+      {
+        CALCULATORS.map((c) => (
+          <li>
+            <a class="tile glass" href={href(`/calculators/${c.slug}/`)}>
+              <strong>{calc.pages[c.slug].name}</strong>
+              <span>{calc.pages[c.slug].description}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </main>
+  <Footer />
+</Base>

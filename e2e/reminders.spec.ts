@@ -75,21 +75,23 @@ test('reminders: the server keeps only a schedule, sends an encrypted generic pu
   await expect(card.getByRole('status')).toHaveText('Reminders are on.');
   await card.screenshot({ path: `${ARTIFACTS}/reminders-on.png` });
 
-  await test.step('The server is told only where to send, the timezone and the times', async () => {
+  await test.step('The server is told only where to send, the timezone, the language and the times', async () => {
     expect(await page.evaluate(() => (window as unknown as { serverKey: number[] }).serverKey)).toEqual([...Buffer.from(publicKey, 'base64url')]);
     expect(puts).toHaveLength(1);
     const sent = JSON.parse(puts[0]!);
-    expect(Object.keys(sent).sort()).toEqual(['schedule', 'subscription', 'tz']);
+    expect(Object.keys(sent).sort()).toEqual(['lang', 'schedule', 'subscription', 'tz']);
     // Chromium may name India's zone by its older alias, Asia/Calcutta; what matters is that the browser's own zone is sent.
     const zone = await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
     const canonical = (tz: string) => new Intl.DateTimeFormat('en', { timeZone: tz }).resolvedOptions().timeZone;
     expect(canonical(zone)).toBe(canonical(TZ));
     expect(sent.tz).toBe(zone);
+    expect(sent.lang).toBe('en');
     expect(sent.schedule).toEqual({ meals: { lunch, dinner } });
     const stored = await request.get(`/api/push?endpoint=${encodeURIComponent(endpoint)}`);
     expect(await stored.json()).toEqual({
       sub: { endpoint, keys: sent.subscription.keys },
       tz: zone,
+      lang: 'en',
       schedule: { meals: { lunch, dinner } },
       due: { at, kinds: ['lunch'] },
     });

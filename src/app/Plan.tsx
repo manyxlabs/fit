@@ -2,7 +2,12 @@ import { useMemo } from 'react';
 import { planDay, type PlannedMeal } from '../data/meal-plans';
 import { db, foodRef, type Day, type FoodEntry, type Meal, type Profile } from './db';
 import { useBump, type Targets } from './hooks';
+import { adviceLang, fill, h, t as copy } from './i18n';
+import { rich } from '../i18n/rich';
 import { Card, fmt } from './ui';
+
+const c = copy.food.plan;
+const bold = { b: (x: string) => <strong>{x}</strong> };
 
 /** A day of meals sized to the targets, each loggable in one tap. */
 export function Plan(props: { date: string; profile: Profile; t: Targets; day: Day; vrat: boolean; entries: FoodEntry[]; names: Record<Meal, string> }) {
@@ -14,6 +19,7 @@ export function Plan(props: { date: string; profile: Profile; t: Targets; day: D
     () => planDay({ date, variant, diet: profile.diet, vrat, mode, kcal: t.kcal, protein: t.protein }),
     [date, variant, profile.diet, vrat, mode, t.kcal, t.protein],
   );
+  const logLabel: Record<Meal, string> = mode === 'ramadan' ? { ...c.log, ...c.logRamadan } : c.log;
 
   async function shuffle() {
     await (await db).put('days', { ...day, date, plan: variant + 1 });
@@ -30,61 +36,55 @@ export function Plan(props: { date: string; profile: Profile; t: Targets; day: D
 
   if (!plan)
     return (
-      <Card title="Plan my day">
-        <p className="hint">No meal plan fits these food choices yet. Add foods to each meal below instead.</p>
+      <Card title={c.title}>
+        <p className="hint">{c.none}</p>
       </Card>
     );
   const open = plan.meals.filter((m) => !logged(m));
   return (
     <Card
-      title="Plan my day"
+      title={c.title}
       action={
         <button type="button" className="link-btn" onClick={shuffle}>
-          Shuffle
+          {c.shuffle}
         </button>
       }
     >
-      {vrat && <p className="hint">Vrat: only vrat foods.</p>}
+      {vrat && <p className="hint">{c.vrat}</p>}
       {plan.meals.map((m) => (
         <div key={m.meal} className="plan-meal">
           <header>
-            <h3>
-              {props.names[m.meal]}: {m.name}
-            </h3>
-            <span className="num muted">
-              {fmt(m.kcal)} kcal · {fmt(m.protein)} g protein
-            </span>
+            <h3>{fill(c.mealTitle, { meal: props.names[m.meal], name: m.name })}</h3>
+            <span className="num muted">{fill(c.mealTotals, { kcal: fmt(m.kcal), protein: fmt(m.protein) })}</span>
           </header>
           <ul className="entries">
             {m.items.map((i) => (
               <li key={i.food.name}>
                 <div>
                   <strong>{i.food.name}</strong>
-                  <span className="muted">
-                    {i.count.toLocaleString('en-IN')} × {i.unit}, {fmt(i.grams)} g
-                  </span>
+                  <span className="muted">{fill(c.item, { count: i.count.toLocaleString('en-IN'), unit: i.unit, g: fmt(i.grams) })}</span>
                 </div>
                 <span className="num">{fmt((i.food.kcal * i.grams) / 100)}</span>
               </li>
             ))}
           </ul>
           <button type="button" className="btn" disabled={logged(m)} onClick={() => log([m])}>
-            {logged(m) ? 'Logged' : `Log ${props.names[m.meal].toLowerCase()}`}
+            {logged(m) ? c.logged : logLabel[m.meal]}
           </button>
         </div>
       ))}
       <p className="num">
-        Plan: <strong>{fmt(plan.kcal)}</strong> of {fmt(t.kcal)} kcal, <strong>{fmt(plan.protein)}</strong> of {fmt(t.protein)} g protein
+        {rich(fill(c.totals, { kcal: fmt(plan.kcal), targetKcal: fmt(t.kcal), protein: fmt(plan.protein), targetProtein: fmt(t.protein) }), bold)}
       </p>
       {!plan.ok && (
-        <p className="warn">
+        <p className="warn" lang={adviceLang}>
           {plan.protein < t.protein * 0.95
-            ? `These meals reach ${fmt((plan.protein / t.protein) * 100)}% of your protein target within your calories. ${vrat ? 'Vrat foods are low in protein; paneer, Greek yogurt and milk help most.' : 'A protein shake, or more paneer, soya, eggs or chicken, closes the gap.'}`
-            : 'These meals land a little off your calorie target; adjust a portion when you log.'}
+            ? fill(vrat ? h.food.proteinShortVrat : h.food.proteinShort, { pct: fmt((plan.protein / t.protein) * 100) })
+            : h.food.kcalOff}
         </p>
       )}
       <button type="button" className="btn primary" disabled={!open.length} onClick={() => log(open)}>
-        {open.length ? 'Log whole day' : 'Whole day logged'}
+        {open.length ? c.logDay : c.dayLogged}
       </button>
     </Card>
   );

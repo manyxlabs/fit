@@ -1,0 +1,66 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { CALCULATORS } from '../../calcs/list';
+import { guides } from '../../guides';
+import { EXERCISES, exerciseSlug, type ExerciseId } from '../../data/exercises';
+import '../../styles/pages.css';
+import { pageLocale } from '../../i18n';
+import { fill } from '../../i18n/intl';
+import { appHref, langParams, localePath } from '../../i18n/locales';
+
+export const getStaticPaths = () => langParams().map((lang) => ({ params: { lang } }));
+const { locale, t, calc, href, health } = pageLocale(Astro.url);
+const c = t.home;
+
+// The big lifts and the home staples, as a way into the full list.
+const POPULAR: ExerciseId[] = ['backSquat', 'benchPress', 'deadlift', 'ohp', 'pullUp', 'romanianDeadlift', 'hipThrust', 'pushUp', 'gobletSquat', 'plank'];
+---
+
+<Base
+  og="home"
+  title={c.title}
+  description={c.description}
+  schema={[{ '@type': 'WebApplication', name: 'Fit', url: new URL(href('/'), Astro.site).href, inLanguage: locale, applicationCategory: 'HealthApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' } }]}
+>
+  <Header />
+  <main class="wrap page">
+    <section class="hero">
+      <h1>{c.heading}</h1>
+      <p class="lede">{c.lede}</p>
+      <div class="row">
+        <a class="btn primary" href={appHref(locale)}>{c.start}</a>
+        <a class="btn" href={href('/calculators/')}>{c.tryCalculator}</a>
+      </div>
+    </section>
+    <ul class="features">
+      {
+        c.features.map(([title, d]) => (
+          <li class="glass">
+            <h2>{title}</h2>
+            <p>{d}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <section class="split">
+      <div>
+        <h2>{c.calculators}</h2>
+        <ul class="links">{CALCULATORS.map((x) => <li><a href={href(`/calculators/${x.slug}/`)}>{calc.pages[x.slug].name}</a></li>)}</ul>
+      </div>
+      <div>
+        <h2>{c.guides}</h2>
+        <ul class="links" lang={health === locale ? undefined : health}>{guides(health).map((g) => <li><a href={localePath(health, `/guides/${g.slug}/`)}>{g.title}</a></li>)}</ul>
+      </div>
+      <div>
+        <h2>{c.exercises}</h2>
+        <ul class="links">
+          {POPULAR.map((id) => <li><a href={localePath(health, `/exercises/${exerciseSlug(id)}/`)}>{EXERCISES[id].name}</a></li>)}
+          <li><a href={localePath(health, '/exercises/')}>{fill(c.allExercises, { count: Object.keys(EXERCISES).length })}</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
