@@ -6,12 +6,13 @@ import { EMAIL, REPO } from '../site';
 import '../styles/pages.css';
 ---
 
-<Base title="Privacy" description="Fit keeps your health data in your own browser. No account, no tracking, no ads.">
+<Base og="privacy" title="Privacy" description="Fit keeps your health data in your own browser. No account, no tracking, no ads.">
   <Header />
   <main class="wrap page">
     <article class="prose">
       <h1>Privacy</h1>
       <p>Everything you enter in Fit (your body, food, workouts, sleep, measurements) is stored only in your browser on your device. It is never sent to us or anyone else.</p>
+      <p>Progress photos are kept the same way, on your device only. Files you import from Apple Health, Samsung Health or Google Fit are read inside your browser and are never uploaded.</p>
       <p>There is no account, no analytics, no advertising and no cookies. The site is served by Cloudflare, which processes standard request data such as IP addresses to deliver pages and stop abuse.</p>
       <p>Because your data lives only on your device, clearing the browser's site data deletes it. Use <strong>More → Download backup</strong> to keep a copy, and <strong>Delete everything</strong> to erase it.</p>
       <p>The code is open source at <a href={REPO}>{REPO.replace('https://', '')}</a>, so you can check all of this. Questions: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</p>

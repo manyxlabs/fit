@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
+import { fmt } from '../lib/fmt';
 import { addDays } from './db';
 
-export const fmt = (n: number, digits = 0) => n.toLocaleString('en-IN', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+export { fmt };
 
 export function Card(props: { title: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
