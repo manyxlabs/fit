@@ -29,6 +29,11 @@
   border-radius: 20px;
 }
 
+/* Lets long selects and lists shrink to the card instead of widening it. */
+.card > * {
+  min-width: 0;
+}
+
 .card > header {
   display: flex;
   align-items: baseline;
@@ -42,6 +47,7 @@
 }
 
 .card > header a {
+  flex-shrink: 0;
   color: var(--accent);
   font-size: 0.9375rem;
   font-weight: 550;
@@ -269,6 +275,7 @@
 .entries li,
 .plan li {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -298,6 +305,10 @@
 .entries .muted,
 .plan .muted {
   font-size: 0.875rem;
+}
+
+.plan .num {
+  white-space: nowrap;
 }
 
 .plan a {
@@ -492,4 +503,32 @@ details[open] summary {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.interval {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+}
+
+.interval-step {
+  font-size: 1.25rem;
+  font-weight: 620;
+}
+
+.interval-clock {
+  font-size: clamp(3.5rem, 18vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.interval .bar-row {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.interval .row {
+  justify-content: center;
 }
