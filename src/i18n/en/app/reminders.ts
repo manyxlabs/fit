@@ -5,7 +5,7 @@ export default {
   title: 'Reminders',
   /** The quoted example is the lunch reminder's text in ../push.ts; quote it as translated there. */
   about:
-    'Notifications at the times you choose. The server keeps only this browser\'s push address, your timezone and these times, never anything you log, and the reminders say no more than "Time to log lunch".',
+    'Notifications at the times you choose. The server keeps only this browser\'s push address, your timezone, the app\'s language and these times, never anything you log, and the reminders say no more than "Time to log lunch".',
   /** Share and Add to Home Screen are the names of buttons on iPhone; use the names iOS shows in this language. */
   ios: 'On iPhone and iPad, reminders need iOS 16.4 or later and Fit on your Home Screen: tap Share, then Add to Home Screen, and open Fit from there.',
   weighIn: 'Morning weigh-in',
