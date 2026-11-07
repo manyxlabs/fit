@@ -41,6 +41,8 @@ export type Exercise = {
   cue: string;
   /** Holds log seconds as reps; conditioning moves are for fitness rather than a muscle, and swap among themselves. */
   kind?: 'hold' | 'conditioning';
+  /** Outside a gym, needs a pull-up bar or dip station. */
+  bar?: true;
 };
 
 const ex = (
@@ -53,6 +55,7 @@ const ex = (
   cue: string,
   kind?: Exercise['kind'],
 ): Exercise => ({ name, primary, secondary, setups, compound, step, cue, ...(kind && { kind }) });
+const onBar = (e: Exercise): Exercise => ({ ...e, bar: true });
 
 const G: Equipment[] = ['gym'];
 const GD: Equipment[] = ['gym', 'dumbbells'];
@@ -69,9 +72,9 @@ export const EXERCISES = {
   dbFly: ex('Dumbbell fly', ['chest'], [], GD, false, 1, 'Lower wide until a stretch, stop before the shoulders complain.'),
   pushUp: ex('Push-up', ['chest'], ['triceps', 'frontDelts'], ALL, true, 0, 'Body in one line, chest to the floor. Elevate the feet when 20 reps get easy.'),
   inclinePushUp: ex('Incline push-up', ['chest'], ['triceps', 'frontDelts'], ALL, true, 0, 'Hands on a bench, counter or wall, body in one line. Use a lower surface as it gets easy.'),
-  dip: ex('Dip', ['chest', 'triceps'], ['frontDelts'], ['gym', 'bodyweight'], true, 2.5, 'Lean forward slightly, lower until upper arms are parallel to the floor.'),
+  dip: onBar(ex('Dip', ['chest', 'triceps'], ['frontDelts'], ALL, true, 2.5, 'Lean forward slightly, lower until upper arms are parallel to the floor.')),
 
-  pullUp: ex('Pull-up', ['lats'], ['biceps', 'upperBack'], ['gym', 'bodyweight'], true, 2.5, 'Start from a dead hang, drive elbows to the ribs, chin over the bar.'),
+  pullUp: onBar(ex('Pull-up', ['lats'], ['biceps', 'upperBack'], ALL, true, 2.5, 'Start from a dead hang, drive elbows to the ribs, chin over the bar.')),
   latPulldown: ex('Lat pulldown', ['lats'], ['biceps', 'upperBack'], G, true, 2.5, 'Lean back slightly, pull the bar to the upper chest, full stretch at the top.'),
   straightArmPulldown: ex('Straight-arm pulldown', ['lats'], [], G, false, 2.5, 'Arms almost straight, sweep the bar down to the thighs, ribs down.'),
   barbellRow: ex('Barbell row', ['upperBack', 'lats'], ['biceps', 'rearDelts', 'lowerBack'], G, true, 2.5, 'Hinge to about 45 degrees, pull to the belly, no jerking.'),
@@ -79,7 +82,7 @@ export const EXERCISES = {
   dbRow: ex('One-arm dumbbell row', ['lats', 'upperBack'], ['biceps'], GD, true, 2, 'Pull the elbow towards the hip, let the shoulder stretch forward at the bottom.'),
   chestSupportedRow: ex('Chest-supported dumbbell row', ['upperBack', 'lats'], ['rearDelts', 'biceps'], GD, true, 2, 'Chest on an incline bench, pull the elbows back past the ribs, chest stays on the pad.'),
   seatedCableRow: ex('Seated cable row', ['upperBack', 'lats'], ['biceps', 'rearDelts'], G, true, 2.5, 'Chest tall, squeeze the shoulder blades, reach forward under control.'),
-  invertedRow: ex('Inverted row', ['upperBack', 'lats'], ['biceps', 'rearDelts'], ['gym', 'bodyweight'], true, 0, 'Under a table or low bar, body straight, chest to the edge.'),
+  invertedRow: ex('Inverted row', ['upperBack', 'lats'], ['biceps', 'rearDelts'], ALL, true, 0, 'Under a table or low bar, body straight, chest to the edge.'),
   bandRow: ex('Band row', ['upperBack', 'lats'], ['biceps', 'rearDelts'], GD, true, 0, 'Band anchored at chest height, pull the hands to the ribs, squeeze the shoulder blades.'),
   shrug: ex('Dumbbell shrug', ['traps'], ['forearms'], GD, false, 2, 'Lift the shoulders straight up towards the ears, pause, lower slowly. No rolling.'),
   backExtension: ex('Back extension', ['lowerBack', 'glutes'], ['hamstrings'], G, false, 2.5, 'Pad just below the hip bones, lower with a flat back, rise until the body is straight.'),
@@ -101,7 +104,7 @@ export const EXERCISES = {
   inclineDbCurl: ex('Incline dumbbell curl', ['biceps'], [], GD, false, 1, 'Arms hang behind the body for a long stretch.'),
   hammerCurl: ex('Hammer curl', ['biceps'], ['forearms'], GD, false, 1, 'Thumbs up, curl across the body or straight up.'),
   preacherCurl: ex('Preacher curl', ['biceps'], [], G, false, 1.25, 'Armpits snug on the pad, lower until the arms are nearly straight, no bouncing.'),
-  chinUp: ex('Chin-up', ['lats', 'biceps'], ['upperBack'], ['gym', 'bodyweight'], true, 2.5, 'Palms facing you, full hang to chest near the bar.'),
+  chinUp: onBar(ex('Chin-up', ['lats', 'biceps'], ['upperBack'], ALL, true, 2.5, 'Palms facing you, full hang to chest near the bar.')),
   pushdown: ex('Triceps pushdown', ['triceps'], [], G, false, 2.5, 'Elbows pinned, straighten fully, control the way up.'),
   overheadExtension: ex('Overhead triceps extension', ['triceps'], [], GD, false, 1, 'Elbows by the ears, lower deep behind the head.'),
   skullCrusher: ex('Skull crusher', ['triceps'], [], GD, false, 1.25, 'Upper arms tilted slightly back, lower the weight behind the head, elbows stay narrow.'),
@@ -141,7 +144,7 @@ export const EXERCISES = {
 
   cableCrunch: ex('Cable crunch', ['abs'], [], G, false, 2.5, 'Curl the ribs to the pelvis, hips stay still.'),
   crunch: ex('Crunch', ['abs'], [], ALL, false, 0, 'Knees bent, curl the ribs towards the pelvis until the shoulder blades lift, lower slowly.'),
-  hangingLegRaise: ex('Hanging leg raise', ['abs'], ['forearms'], ['gym', 'bodyweight'], false, 0, 'Tilt the pelvis up at the top, no swinging.'),
+  hangingLegRaise: onBar(ex('Hanging leg raise', ['abs'], ['forearms'], ALL, false, 0, 'Tilt the pelvis up at the top, no swinging.')),
   abWheel: ex('Ab wheel rollout', ['abs'], ['lats'], GD, false, 0, 'From the knees, roll out with the ribs down, only as far as the lower back stays flat.'),
   deadBug: ex('Dead bug', ['abs'], [], ALL, false, 0, 'Lower back flat on the floor, lower the opposite arm and leg slowly, breathe out as you reach.'),
   birdDog: ex('Bird dog', ['abs', 'lowerBack'], ['glutes'], ALL, false, 0, 'On all fours, reach the opposite arm and leg out long, hips level, pause, return.'),
@@ -157,15 +160,30 @@ export const EXERCISES = {
 } satisfies Record<string, Exercise>;
 export type ExerciseId = keyof typeof EXERCISES;
 
+/** Whether someone can do it where they train; `bar` is whether a home setup has a pull-up bar or dip station. */
+export function canDo(id: ExerciseId, setup: Equipment, bar: boolean) {
+  const e: Exercise = EXERCISES[id];
+  return e.setups.includes(setup) && (setup === 'gym' || bar || !e.bar);
+}
+
+/**
+ * The kg to add once every set reaches the top of the range, or 0 where weight cannot be added:
+ * with no weights, or hanging from a bar at home without a dip belt. Those move to a harder variation.
+ */
+export function loadStep(id: ExerciseId, setup: Equipment) {
+  const e: Exercise = EXERCISES[id];
+  return setup === 'gym' || (setup === 'dumbbells' && !e.bar) ? e.step : 0;
+}
+
 /**
  * Others that train the same main muscle in the same setup and log the same way, for swapping
  * one out. Conditioning moves train fitness rather than a muscle, so any of them swaps for another.
  */
-export function alternatives(id: ExerciseId, setup: Equipment) {
+export function alternatives(id: ExerciseId, setup: Equipment, bar: boolean) {
   const a: Exercise = EXERCISES[id];
   return (Object.keys(EXERCISES) as ExerciseId[]).filter((o) => {
     const b: Exercise = EXERCISES[o];
-    return o !== id && b.kind === a.kind && (a.kind === 'conditioning' || b.primary[0] === a.primary[0]) && b.setups.includes(setup);
+    return o !== id && b.kind === a.kind && (a.kind === 'conditioning' || b.primary[0] === a.primary[0]) && canDo(o, setup, bar);
   });
 }
 

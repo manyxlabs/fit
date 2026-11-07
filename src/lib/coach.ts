@@ -1,4 +1,4 @@
-import { EXERCISES, type ExerciseId } from '../data/exercises';
+import { EXERCISES, loadStep, type Equipment, type ExerciseId } from '../data/exercises';
 import { loadFor, oneRepMax } from './calc';
 
 export type SetLog = { kg: number; reps: number; rir: number };
@@ -6,20 +6,20 @@ export type SetLog = { kg: number; reps: number; rir: number };
 /**
  * Double progression: hold the load and add reps until every set reaches the top of the
  * range, then add the exercise's smallest load step and start again from the bottom.
- * Bodyweight moves have no load step, so they keep adding reps.
+ * Where no weight can be added, reps go up to the top of the range, then a harder variation.
  */
-export function nextTarget(id: ExerciseId, range: [number, number], last: SetLog[]) {
+export function nextTarget(id: ExerciseId, range: [number, number], last: SetLog[], setup: Equipment) {
   const [low, high] = range;
-  const step = EXERCISES[id].step;
+  const step = loadStep(id, setup);
   if (!last.length) return { kg: undefined, reps: low, note: step ? 'Pick a load you can lift for the bottom of the range with 2-3 reps to spare.' : 'Start at the bottom of the range, with some left in the tank.' };
   const kg = Math.max(...last.map((s) => s.kg));
   const top = last.filter((s) => s.kg === kg);
   if (top.every((s) => s.reps >= high)) {
-    if (step === 0) return { kg, reps: high, note: 'Every set reached the top of the range. Move to a harder variation or slow the lowering to 4 seconds.' };
+    if (step === 0) return { kg: kg || undefined, reps: high, note: 'Every set reached the top of the range. Move to a harder variation or slow the lowering to 4 seconds.' };
     return { kg: kg + step, reps: low, note: `Every set reached ${high}. Add ${step} kg.` };
   }
   const reps = Math.min(high, Math.min(...top.map((s) => s.reps)) + 1);
-  return { kg, reps, note: `Same load, aim for ${reps}+ reps on each set.` };
+  return kg ? { kg, reps, note: `Same load, aim for ${reps}+ reps on each set.` } : { kg: undefined, reps, note: `Aim for ${reps}+ reps on each set.` };
 }
 
 /**

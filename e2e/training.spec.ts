@@ -100,3 +100,42 @@ test('the strength program prescribes the next load from the logged estimated ma
   await expect(page.getByRole('region', { name: 'Barbell bench press' }).getByText(/^Target: 105\.0 kg × 4 reps, 4 sets, 2 reps in reserve/)).toBeVisible();
   await page.screenshot({ path: 'test-results/artifacts/strength-target.png', fullPage: true });
 });
+
+test('at home, bar moves are offered only with a bar, and bodyweight moves progress by reps and harder variations', async ({ page }) => {
+  await onboard(page);
+  await tab(page, 'More').click();
+  await page.getByLabel('Where you train').selectOption({ label: 'Bodyweight only' });
+  await page.getByLabel('Training days a week').selectOption('3');
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await tab(page, 'Train').click();
+  const plan = page.getByRole('region', { name: /^Your program/ });
+  await plan.getByText('Days and exercises').click();
+  await expect(plan.getByRole('combobox', { name: 'Swap Inverted row' }).first()).toBeVisible();
+  await expect(plan).not.toContainText(/Pull-up|Chin-up|\bDip\b|Hanging leg raise/);
+  await page.screenshot({ path: 'test-results/artifacts/program-no-bar.png', fullPage: true });
+
+  await tab(page, 'More').click();
+  await page.getByLabel('I have a pull-up bar or dip station').check();
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await tab(page, 'Train').click();
+  await plan.getByText('Days and exercises').click();
+  await expect(plan.getByRole('combobox', { name: 'Swap Pull-up' })).toBeVisible();
+  await expect(plan.getByRole('combobox', { name: 'Swap Dip' })).toBeVisible();
+
+  // Every set at the top of the range with no weight to add: the next target is a harder variation, never more kg.
+  const pullUp = page.getByRole('region', { name: 'Pull-up', exact: true });
+  for (const round of [1, 2]) {
+    await page.getByLabel('Train a different day').selectOption('Full body B');
+    if (round === 2) break;
+    for (let i = 0; i < 3; i++) {
+      await pullUp.getByLabel('Reps', { exact: true }).fill('10');
+      await pullUp.getByRole('button', { name: 'Log' }).click();
+      await expect(pullUp.locator('li.done')).toHaveCount(i + 1);
+    }
+    await page.getByRole('button', { name: 'Finish workout' }).click();
+  }
+  await expect(pullUp.getByText('Move to a harder variation')).toBeVisible();
+  await expect(pullUp.getByText(/Target: 10 reps, 3 sets/)).toBeVisible();
+  await expect(pullUp).not.toContainText(/Add [\d.]+ kg/);
+  await pullUp.screenshot({ path: 'test-results/artifacts/bodyweight-progression.png' });
+});
