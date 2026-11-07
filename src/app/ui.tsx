@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
+import { fmt } from '../lib/fmt';
 import { addDays } from './db';
 
-export const fmt = (n: number, digits = 0) => n.toLocaleString('en-IN', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+export { fmt };
 
 /** Whole seconds as m:ss. */
 export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;

@@ -2,7 +2,7 @@
 import '@fontsource-variable/inter';
 // Latin covers every page's text, so fetching it early keeps the swap from shifting layout late.
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
-import { BRAND } from '../site';
+import { BRAND, ogImage } from '../site';
 
 type Props = {
   /** Without the brand, which is added when the whole still fits a search result (60 characters). */
@@ -10,10 +10,10 @@ type Props = {
   description: string;
   /** schema.org objects, for search results. */
   schema?: Record<string, unknown>[];
-  noindex?: boolean;
-};
+  /** The share card's slug in public/og/; every page search engines see has one. */
+} & ({ og: string; noindex?: never } | { og?: string; noindex: true });
 
-const { title, description, schema = [], noindex } = Astro.props;
+const { title, description, schema = [], noindex, og } = Astro.props;
 const brand = ` - ${BRAND}`;
 const fullTitle = title.length + brand.length <= 60 ? title + brand : title;
 // "</script>" inside a string would end the tag early.
@@ -41,12 +41,23 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       ) : (
         <>
           <link rel="canonical" href={canonical} />
+          <meta property="og:url" content={canonical} />
+        </>
+      )
+    }
+    {
+      og && (
+        <>
           <meta property="og:type" content="website" />
           <meta property="og:site_name" content={BRAND} />
           <meta property="og:locale" content="en_IN" />
           <meta property="og:title" content={title} />
           <meta property="og:description" content={description} />
-          <meta property="og:url" content={canonical} />
+          <meta property="og:image" content={ogImage(og)} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content={title} />
+          <meta name="twitter:card" content="summary_large_image" />
         </>
       )
     }

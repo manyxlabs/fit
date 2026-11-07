@@ -1,0 +1,4 @@
+﻿com.samsung.shealth.sleep,6305105,12
+original_efficiency,sleep_score,efficiency,sleep_duration,com.samsung.health.sleep.create_sh_ver,com.samsung.health.sleep.start_time,com.samsung.health.sleep.custom,com.samsung.health.sleep.modify_sh_ver,com.samsung.health.sleep.update_time,com.samsung.health.sleep.create_time,com.samsung.health.sleep.time_offset,com.samsung.health.sleep.deviceuuid,com.samsung.health.sleep.comment,com.samsung.health.sleep.pkg_name,com.samsung.health.sleep.end_time,com.samsung.health.sleep.datauuid
+92.0,81,93.3,420,,2026-08-31 17:30:00.000,,,2026-09-01 01:02:11.120,2026-09-01 01:02:11.120,UTC+0530,VfS0qUERdZ,,com.sec.android.app.shealth,2026-09-01 01:00:00.000,00000000-0000-0000-0000-000000000015,
+,,,,,2026-09-01 18:00:00.000,,,2026-09-02 00:31:00.500,2026-09-02 00:31:00.500,UTC+0530,VfS0qUERdZ,,com.sec.android.app.shealth,2026-09-02 00:30:00.000,00000000-0000-0000-0000-000000000016,

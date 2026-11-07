@@ -59,6 +59,7 @@ test('a workout is logged, and the next session asks for more', async ({ page })
     await expect(card.locator('li.done')).toHaveCount(i + 1);
   }
   await expect(page.getByRole('timer')).toBeVisible();
+  await expect(card.locator('li.done')).toHaveCount(sets);
   await page.reload(); // the workout in progress survives a reload
   await expect(card.locator('li.done')).toHaveCount(sets);
   await page.getByRole('button', { name: 'Finish workout' }).click();
@@ -93,7 +94,7 @@ test('a backup restores everything after the data is deleted', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Set up your plan' })).toBeVisible();
   await onboard(page, 'Lose fat');
   await tab(page, 'More').click();
-  await page.locator('input[type=file]').setInputFiles(file);
+  await page.getByLabel('Restore a backup').setInputFiles(file);
   await tab(page, 'Today').click();
   await expect(page.getByRole('region', { name: 'Calories' }).getByText('2,672 kcal left')).toBeVisible();
 });

@@ -44,9 +44,14 @@ export type Workout = {
 
 /** `day` names the program day it completed, for activities logged from a run or yoga plan. */
 export type Activity_ = { id?: number; date: string; name: string; met: number; minutes: number; km?: number; day?: string };
-export type Measurement = { date: string; waist?: number; neck?: number; hip?: number; chest?: number; arm?: number; thigh?: number };
+/** Circumferences in cm; bodyFat is a percentage from a scale or health app, not the tape. */
+export type Measurement = { date: string; waist?: number; neck?: number; hip?: number; chest?: number; arm?: number; thigh?: number; bodyFat?: number };
 /** `vrat` is a one-day fast (Ekadashi and the like); `plan` is which meal plan variant Shuffle reached. */
-export type Day = CheckIn & { steps?: number; waterMl?: number; supplements?: SupplementId[]; vrat?: boolean; plan?: number };
+export type Day = CheckIn & { steps?: number; waterMl?: number; supplements?: SupplementId[]; vrat?: boolean; plan?: number; restingHr?: number };
+export const POSES = ['front', 'side', 'back'] as const;
+export type Pose = (typeof POSES)[number];
+/** A JPEG, already downscaled and stripped of EXIF. */
+export type Photo = { date: string; pose: Pose; blob: Blob };
 
 export type Settings = {
   profile?: Profile;
@@ -68,20 +73,24 @@ interface Schema extends DBSchema {
   activities: { key: number; value: Activity_; indexes: { date: string } };
   days: { key: string; value: Day };
   measurements: { key: string; value: Measurement };
+  photos: { key: [string, Pose]; value: Photo };
 }
 
-export const STORES = ['settings', 'weights', 'food', 'customFoods', 'workouts', 'activities', 'days', 'measurements'] as const;
+export const STORES = ['settings', 'weights', 'food', 'customFoods', 'workouts', 'activities', 'days', 'measurements', 'photos'] as const;
 
-export const db = openDB<Schema>('fit', 1, {
-  upgrade(d) {
-    d.createObjectStore('settings');
-    d.createObjectStore('weights', { keyPath: 'date' });
-    d.createObjectStore('food', { keyPath: 'id', autoIncrement: true }).createIndex('date', 'date');
-    d.createObjectStore('customFoods', { keyPath: 'id', autoIncrement: true });
-    d.createObjectStore('workouts', { keyPath: 'id', autoIncrement: true }).createIndex('date', 'date');
-    d.createObjectStore('activities', { keyPath: 'id', autoIncrement: true }).createIndex('date', 'date');
-    d.createObjectStore('days', { keyPath: 'date' });
-    d.createObjectStore('measurements', { keyPath: 'date' });
+export const db = openDB<Schema>('fit', 2, {
+  upgrade(d, old) {
+    if (old < 1) {
+      d.createObjectStore('settings');
+      d.createObjectStore('weights', { keyPath: 'date' });
+      d.createObjectStore('food', { keyPath: 'id', autoIncrement: true }).createIndex('date', 'date');
+      d.createObjectStore('customFoods', { keyPath: 'id', autoIncrement: true });
+      d.createObjectStore('workouts', { keyPath: 'id', autoIncrement: true }).createIndex('date', 'date');
+      d.createObjectStore('activities', { keyPath: 'id', autoIncrement: true }).createIndex('date', 'date');
+      d.createObjectStore('days', { keyPath: 'date' });
+      d.createObjectStore('measurements', { keyPath: 'date' });
+    }
+    if (!d.objectStoreNames.contains('photos')) d.createObjectStore('photos', { keyPath: ['date', 'pose'] });
   },
 });
 
@@ -102,23 +111,53 @@ export function addDays(date: string, n: number) {
   return today(d);
 }
 
-export async function backup() {
+/**
+ * Photos go in as base64 JPEG inside the same JSON, so there is one file and one restore path.
+ * JPEG does not compress further, so a zip would only save base64's third, for a dependency
+ * and a second format. Left out on request, for a small backup taken often.
+ */
+export async function backup(photos: boolean) {
   const d = await db;
   const out: Record<string, unknown> = { app: 'fit', version: 1 };
-  for (const s of STORES) out[s] = s === 'settings' ? Object.fromEntries(await Promise.all((await d.getAllKeys(s)).map(async (k) => [k, await d.get(s, k)]))) : await d.getAll(s);
+  for (const s of STORES) {
+    if (s === 'photos') {
+      if (photos) out.photos = await Promise.all((await d.getAll('photos')).map(async ({ blob, ...p }) => ({ ...p, jpeg: await dataUrl(blob) })));
+    } else out[s] = s === 'settings' ? Object.fromEntries(await Promise.all((await d.getAllKeys(s)).map(async (k) => [k, await d.get(s, k)]))) : await d.getAll(s);
+  }
   return out;
 }
 
-/** Replaces everything with a backup's contents, in one transaction so a bad file changes nothing. */
+const dataUrl = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+
+/**
+ * Replaces everything with a backup's contents, in one transaction so a bad file changes nothing.
+ * A backup taken without photos leaves the photos here as they are.
+ */
 export async function restore(data: Record<string, unknown>) {
   if (data.app !== 'fit' || data.version !== 1) throw new Error('This is not a Fit backup.');
+  // Decoded first: a transaction that awaits anything but its own requests commits early.
+  const photos =
+    data.photos &&
+    (await Promise.all(
+      (data.photos as (Omit<Photo, 'blob'> & { jpeg: string })[]).map(async ({ jpeg, ...p }) => {
+        if (!jpeg?.startsWith('data:image/jpeg;base64,') || !POSES.includes(p.pose)) throw new Error('This backup has a damaged photo.');
+        return { ...p, blob: await (await fetch(jpeg)).blob() };
+      }),
+    ));
+  const stores = STORES.filter((s) => s !== 'photos' || photos);
   const d = await db;
-  const tx = d.transaction(STORES, 'readwrite');
-  for (const s of STORES) {
+  const tx = d.transaction(stores, 'readwrite');
+  for (const s of stores) {
     const store = tx.objectStore(s);
     await store.clear();
     if (s === 'settings') for (const [k, v] of Object.entries((data.settings ?? {}) as Settings)) await store.put(v, k as keyof Settings);
-    else for (const row of (data[s] ?? []) as never[]) await store.put(row);
+    else for (const row of (s === 'photos' ? photos : (data[s] ?? [])) as never[]) await store.put(row);
   }
   await tx.done;
 }
