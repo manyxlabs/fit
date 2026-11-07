@@ -3,13 +3,17 @@ import { NOT_WORTH_IT, recommend, SUPPLEMENTS, type SupplementId } from '../data
 import { backup, db, restore, STORES, today, type Profile } from './db';
 import { targets, totals, useAsync, useBump } from './hooks';
 import { saveProfile } from './Onboarding';
+import { HealthImport } from './HealthImport';
 import { ProfileForm } from './ProfileForm';
+import { mb } from './Photos';
 import { Card } from './ui';
 
 export function More({ profile }: { profile: Profile }) {
   const bump = useBump();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string>();
+  const [withPhotos, setWithPhotos] = useState(true);
+  const photoBytes = useAsync(async () => (await (await db).getAll('photos')).reduce((s, p) => s + p.blob.size, 0), []);
   const gap = useAsync(async () => {
     const t = await targets(profile);
     const eaten = totals(await (await db).getAllFromIndex('food', 'date', today()));
@@ -19,7 +23,7 @@ export function More({ profile }: { profile: Profile }) {
   const others = (Object.keys(SUPPLEMENTS) as SupplementId[]).filter((id) => !recs.some((r) => r.id === id));
 
   async function download() {
-    const blob = new Blob([JSON.stringify(await backup())], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(await backup(withPhotos))], { type: 'application/json' });
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `fit-backup-${today()}.json` });
     a.click();
     URL.revokeObjectURL(a.href);
@@ -72,6 +76,12 @@ export function More({ profile }: { profile: Profile }) {
 
       <Card title="Your data">
         <p className="hint">Everything lives only in this browser. Download a backup now and then, and restore it on a new phone or after clearing the browser.</p>
+        {!!photoBytes && (
+          <label className="check">
+            <input type="checkbox" checked={withPhotos} onChange={(e) => setWithPhotos(e.target.checked)} />
+            Include progress photos (about {mb((photoBytes * 4) / 3)}, as base64)
+          </label>
+        )}
         <div className="row">
           <button type="button" className="btn primary" onClick={download}>
             Download backup
@@ -111,6 +121,8 @@ export function More({ profile }: { profile: Profile }) {
         </div>
         {error && <p className="error">{error}</p>}
       </Card>
+
+      <HealthImport />
 
       <Card title="Learn">
         <ul className="plan">

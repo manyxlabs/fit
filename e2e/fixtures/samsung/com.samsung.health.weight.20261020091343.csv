@@ -1,0 +1,6 @@
+﻿com.samsung.health.weight,6305105,10
+body_fat_mass,start_time,custom,height,weight,muscle_mass,update_time,create_time,skeletal_muscle,fat_free_mass,basal_metabolic_rate,time_offset,deviceuuid,skeletal_muscle_mass,comment,fat_free,pkg_name,body_fat,datauuid,vfa_level,total_body_water
+19.33,2026-09-01 01:44:31.016,,176.0,80.2,,2026-09-01 01:44:31.016,2026-09-01 01:44:31.044,,60.87,1712,UTC+0530,VfS0qUERdZ,35.1,,,com.sec.android.app.shealth,24.1,00000000-0000-0000-0000-000000000001,,44.6,
+,2026-09-01 14:00:00.000,,176.0,81.0,,2026-09-01 14:00:00.000,2026-09-01 14:00:00.012,,,,UTC+0530,VfS0qUERdZ,,,,com.sec.android.app.shealth,,00000000-0000-0000-0000-000000000002,,,
+,2026-09-02 01:30:00.000,,176.0,80.0,,2026-09-02 01:30:00.000,2026-09-02 01:30:00.020,,,,UTC+0530,VfS0qUERdZ,,,,com.sec.android.app.shealth,,00000000-0000-0000-0000-000000000003,,,
+,2026-09-02 20:00:00.000,,176.0,79.9,,2026-09-02 20:00:00.000,2026-09-02 20:00:00.031,,,,UTC+0530,VfS0qUERdZ,,"after travel, ate late",,com.sec.android.app.shealth,,00000000-0000-0000-0000-000000000004,,,

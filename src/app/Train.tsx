@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { alternatives, EXERCISES, MUSCLES, type ExerciseId, type Muscle } from '../data/exercises';
 import { ACTIVITIES } from '../data/activities';
 import { weeklySets } from '../data/programs';
-import { metKcal } from '../lib/calc';
+import { age, heartRateZones, metKcal } from '../lib/calc';
 import { deloadDue, nextTarget, readiness, type SetLog } from '../lib/coach';
 import { addDays, db, getSetting, setSetting, today, type Profile, type Settings, type Workout } from './db';
 import { latestWeight, useAsync, useBump } from './hooks';
@@ -66,9 +66,10 @@ export function Train({ profile }: { profile: Profile }) {
         session={session}
         hist={hist}
         extraRir={ready.extraRir}
+        // Saved first, so a logged set on screen is never lost to a reload or a killed tab.
         onChange={async (w) => {
-          setSession(w);
           await setSetting('draft', w);
+          setSession(w);
         }}
         onEnd={async (save) => {
           const d = await db;
@@ -134,7 +135,7 @@ export function Train({ profile }: { profile: Profile }) {
         )}
       </Card>
       <ProgramCard program={program} setup={profile.setup} />
-      <Cardio />
+      <Cardio birthYear={profile.birthYear} />
       <Card title="Recent workouts">
         {data.recent.length ? (
           <ul className="plan">
@@ -325,9 +326,14 @@ function ProgramCard({ program, setup }: { program: Program; setup: Profile['set
   );
 }
 
-function Cardio() {
+function Cardio({ birthYear }: { birthYear: number }) {
   const bump = useBump();
-  const data = useAsync(async () => ({ list: await (await db).getAllFromIndex('activities', 'date', today()), w: await latestWeight() }), []);
+  const data = useAsync(async () => {
+    const d = await db;
+    // Resting heart rate comes from a health-app import; a month old is still close enough.
+    const resting = (await d.getAll('days', IDBKeyRange.lowerBound(addDays(today(), -30)))).findLast((x) => x.restingHr)?.restingHr;
+    return { list: await d.getAllFromIndex('activities', 'date', today()), w: await latestWeight(), zone2: heartRateZones(age(birthYear), resting)[1], resting };
+  }, [birthYear]);
   const [pick, setPick] = useState(1);
   const [mins, setMins] = useState(30);
   if (!data) return null;
@@ -335,6 +341,13 @@ function Cardio() {
   return (
     <Card title="Cardio and sport today">
       <p className="hint">2-3 easy sessions of 20-40 minutes a week help the heart and recovery. Keep them away from heavy leg days.</p>
+      <p>
+        Easy pace (zone 2):{' '}
+        <strong className="num">
+          {data.zone2.from}-{data.zone2.to} bpm
+        </strong>
+        <span className="muted">{data.resting ? `, from your resting heart rate of ${data.resting}` : ', from your age; import a resting heart rate in More to fit it to you'}.</span>
+      </p>
       {data.list.length > 0 && (
         <ul className="plan">
           {data.list.map((a) => (

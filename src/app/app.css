@@ -493,3 +493,180 @@ details[open] summary {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* Progress photos. Images are contained, never cropped, so no part of the body is cut off. */
+.photo-date {
+  max-width: 240px;
+}
+
+.poses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 560px;
+}
+
+.poses figure,
+.pair figure {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+}
+
+.shot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px dashed color-mix(in srgb, var(--muted) 45%, transparent);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 2rem;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.shot:has(img) {
+  border-style: solid;
+  border-color: var(--border);
+}
+
+.shot:hover,
+.shot:focus-within {
+  border-color: var(--accent);
+}
+
+.shot img,
+.pair img,
+.overlay img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Visually hidden but still focusable, so the label around it is the control. */
+.poses input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.poses figcaption {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+
+.poses figcaption span {
+  flex: 1;
+  min-width: 0;
+}
+
+.poses .icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+
+.poses .icon-btn svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.poses label.icon-btn:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chip {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.card > .btn {
+  justify-self: start;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 560px;
+  text-align: center;
+}
+
+.pair img,
+.overlay {
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  background: var(--border);
+}
+
+.overlay {
+  position: relative;
+  display: grid;
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+}
+
+.overlay img {
+  grid-area: 1 / 1;
+}
+
+.overlay img + img {
+  clip-path: inset(0 0 0 var(--split));
+}
+
+.overlay::after {
+  position: absolute;
+  inset-block: 0;
+  left: var(--split);
+  width: 2px;
+  margin-left: -1px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.25);
+  content: '';
+}
+
+.overlay + input[type='range'] {
+  max-width: 480px;
+}
+
+.howto {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.9375rem;
+}
+
+.checks .check {
+  align-items: flex-start;
+}
+
+.checks .check input {
+  margin-top: 4px;
+}
