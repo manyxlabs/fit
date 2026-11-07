@@ -10,18 +10,21 @@ export function Progress({ profile }: { profile: Profile }) {
   const data = useAsync(async () => {
     const d = await db;
     const week = addDays(today(), -6);
-    const [t, weights, measurements, workouts, food, days] = await Promise.all([
+    const [t, weights, measurements, workouts, food, days, sessions] = await Promise.all([
       targets(profile),
       d.getAll('weights', IDBKeyRange.lowerBound(addDays(today(), -120))),
       d.getAll('measurements'),
       d.getAllFromIndex('workouts', 'date'),
       d.getAllFromIndex('food', 'date', IDBKeyRange.lowerBound(week)),
       d.getAll('days', IDBKeyRange.lowerBound(week)),
+      d.getAllFromIndex('activities', 'date', IDBKeyRange.lowerBound(week)),
     ]);
-    return { t, weights, m: measurements.at(-1), workouts, food, days, week };
+    // Runs and yoga from a program count as sessions; other cardio does not.
+    const planned = sessions.filter((a) => a.day).length;
+    return { t, weights, m: measurements.at(-1), workouts, food, days, week, planned };
   }, [profile]);
   if (!data?.t) return null;
-  const { t, weights, m, workouts, food, days, week } = data;
+  const { t, weights, m, workouts, food, days, week, planned } = data;
   const tr = trend(weights);
   const weekAgo = tr.findLast((p) => p.date <= addDays(today(), -7));
   const change = weekAgo ? tr.at(-1)!.trend - weekAgo.trend : undefined;
@@ -37,7 +40,7 @@ export function Progress({ profile }: { profile: Profile }) {
     protein: avg([...loggedDays.values()].map((x) => x.protein)),
     sleep: avg(days.flatMap((x) => (x.sleep ? [x.sleep] : []))),
     steps: avg(days.flatMap((x) => (x.steps ? [x.steps] : []))),
-    sessions: workouts.filter((w) => w.date >= week).length,
+    sessions: workouts.filter((w) => w.date >= week).length + planned,
   };
 
   const body = bmi(t.kg, profile.cm);

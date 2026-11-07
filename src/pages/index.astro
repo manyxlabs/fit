@@ -4,7 +4,11 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { CALCULATORS } from '../calcs/list';
 import { GUIDES } from '../guides';
+import { EXERCISES, exerciseSlug, type ExerciseId } from '../data/exercises';
 import '../styles/pages.css';
+
+// The big lifts and the home staples, as a way into the full list.
+const POPULAR: ExerciseId[] = ['backSquat', 'benchPress', 'deadlift', 'ohp', 'pullUp', 'romanianDeadlift', 'hipThrust', 'pushUp', 'gobletSquat', 'plank'];
 
 const FEATURES = [
   ['Calories and macros', 'Targets from your body and goal, then measured from your own logs after a few weeks, so they fit you rather than a formula.'],
@@ -49,6 +53,13 @@ const FEATURES = [
       <div>
         <h2>Guides</h2>
         <ul class="links">{GUIDES.map((g) => <li><a href={`/guides/${g.slug}/`}>{g.title}</a></li>)}</ul>
+      </div>
+      <div>
+        <h2>Exercise guides</h2>
+        <ul class="links">
+          {POPULAR.map((id) => <li><a href={`/exercises/${exerciseSlug(id)}/`}>{EXERCISES[id].name}</a></li>)}
+          <li><a href="/exercises/">All {Object.keys(EXERCISES).length} exercises</a></li>
+        </ul>
       </div>
     </section>
   </main>

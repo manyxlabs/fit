@@ -1,16 +1,13 @@
-import { programFor } from '../data/programs';
+import { planOf, programFor } from '../data/programs';
 import { db, getSetting, setSetting, today, type Profile } from './db';
 import { useBump } from './hooks';
 import { ProfileForm } from './ProfileForm';
 
-/** Saves a profile, and starts the matching program when where or how often they train changed. */
+/** Saves a profile, and starts the chosen or matching program when it or where or how often they train changed. */
 export async function saveProfile(p: Profile, kg?: number) {
   const old = await getSetting('profile');
   if (kg !== undefined) await (await db).put('weights', { date: today(), kg });
-  if (!old || old.setup !== p.setup || old.days !== p.days) {
-    const t = programFor(p.setup, p.days);
-    await setSetting('program', { name: t.name, days: t.days.map((d) => ({ name: d.name, slots: d.slots.map((s) => [...s]) })) });
-  }
+  if (!old || old.setup !== p.setup || old.days !== p.days || old.program !== p.program) await setSetting('program', planOf(p.program ?? programFor(p.setup, p.days)));
   await setSetting('profile', p);
 }
 
