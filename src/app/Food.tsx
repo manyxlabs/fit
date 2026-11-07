@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { FOODS, fits, search, type Food as DbFood } from '../data/foods';
-import { addDays, db, today, type CustomFood, type FoodRef, type Meal, type Profile } from './db';
+import { MEALS, type Meal } from '../data/meals';
+import { addDays, db, today, type CustomFood, type FoodRef, type Profile } from './db';
 import { kcalOf, targets, totals, useAsync, useBump } from './hooks';
 import { Bar, Card, DateNav, fmt } from './ui';
-
-const MEALS: Record<Meal, string> = { breakfast: 'Breakfast', lunch: 'Lunch', snacks: 'Snacks', dinner: 'Dinner' };
 
 type Pickable = FoodRef & { units: [string, number][]; aliases?: string[] };
 const GRAMS: [string, number] = ['grams', 1];

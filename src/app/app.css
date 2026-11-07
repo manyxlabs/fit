@@ -493,3 +493,59 @@ details[open] summary {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.pair {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 559px) {
+  .pair {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+.qr {
+  display: block;
+  width: 168px;
+  height: 168px;
+  border-radius: 12px;
+}
+
+.row input.link {
+  flex: 1;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.reminders li {
+  flex-wrap: wrap;
+}
+
+.reminders .row input:disabled,
+.reminders .row select:disabled,
+.days:disabled {
+  opacity: 0.45;
+}
+
+/* Too wide to share a line with the interval at phone width. */
+.reminders .hours {
+  flex-basis: 100%;
+  justify-content: flex-end;
+}
+
+/* A .seg of checkboxes, seven across even at phone width. */
+.seg.days {
+  flex-basis: 100%;
+  gap: 4px;
+  padding-bottom: 4px;
+}
+
+.seg.days label {
+  min-width: 0;
+  font-size: 0.8125rem;
+}
