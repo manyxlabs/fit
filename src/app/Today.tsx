@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { readiness, type Sickness } from '../lib/coach';
 import { recommend, SUPPLEMENTS, type SupplementId } from '../data/supplements';
-import { db, getSetting, today, type Day, type Profile } from './db';
-import { targets, totals, useAsync, useBump } from './hooks';
+import { CITIES, ifName, ramadanTimes, vratDay, windowState } from '../lib/fasting';
+import { addDays, db, getSetting, today, type Day, type Profile } from './db';
+import { targets, totals, useAsync, useBump, useNow, type Targets } from './hooks';
 import { nextDay } from './Train';
 import { Bar, Card, DateNav, fmt } from './ui';
 
@@ -45,6 +46,8 @@ export function Today({ profile }: { profile: Profile }) {
         <Bar label="Fibre" value={eaten.fibre} target={t.fibre} unit="g" />
         {t.floored && <p className="warn">Your pace would put you below a safe minimum, so the target is held there. Choose a slower pace in More.</p>}
       </Card>
+
+      {profile.fasting && <FastingCard profile={profile} t={t} day={day} date={date} patch={patch} />}
 
       <Card title="How are you today?">
         <div className="grid">
@@ -145,6 +148,8 @@ export function Today({ profile }: { profile: Profile }) {
         </Card>
       </div>
 
+      {!profile.fasting && <FastingCard profile={profile} t={t} day={day} date={date} patch={patch} />}
+
       <Card title="Supplements" action={<a href="#more">Guide</a>}>
         <ul className="checks">
           {recs.map(({ id }) => (
@@ -163,3 +168,54 @@ export function Today({ profile }: { profile: Profile }) {
 
 const num = (n: number) => (Number.isFinite(n) && n > 0 ? n : undefined);
 const toggle = (list: SupplementId[], id: SupplementId, on: boolean) => (on ? [...new Set([...list, id])] : list.filter((x) => x !== id));
+
+const time = (d: Date) => d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+/** `n` split into `parts` near-equal whole numbers, the larger ones first. */
+const split = (n: number, parts: number) => Array.from({ length: parts }, (_, i) => Math.floor(n / parts) + (i < n % parts ? 1 : 0));
+
+function FastingCard(props: { profile: Profile; t: Targets; day: Day; date: string; patch: (c: Partial<Day>) => void }) {
+  const now = useNow();
+  const { t, day, date } = props;
+  const f = props.profile.fasting;
+  const live = date === today(now) ? windowState(f, now) : undefined;
+  const vrat = vratDay(f, day);
+  // After iftar, the fast that matters is tomorrow's, whose suhoor is the one being counted down to.
+  const next = f?.mode === 'ramadan' && live?.eating && now >= ramadanTimes(f, date).maghrib;
+  const ramadan = f?.mode === 'ramadan' ? { ...ramadanTimes(f, next ? addDays(date, 1) : date), city: 'city' in f ? CITIES[f.city][0] : undefined } : undefined;
+  const water = split(Math.ceil(t.waterMl / 250), 4);
+  return (
+    <Card title="Fasting" action={f && <span className="muted">{f.mode === 'if' ? ifName(f.hours) : f.mode === 'ramadan' ? 'Ramadan' : 'Navratri'}</span>}>
+      {live && (
+        <p className="fast-state" role="status">
+          <strong>{live.eating ? 'Eating window open' : 'Fasting'}</strong>
+          {ramadan ? (live.eating ? `, suhoor ends at ${time(live.until)}` : `, iftar at ${time(live.until)}`) : live.eating ? `, closes at ${time(live.until)}` : `, eating window opens at ${time(live.until)}`}
+        </p>
+      )}
+      {ramadan && (
+        <>
+          <p className="num">
+            {next && 'Tomorrow: '}Suhoor ends <strong>{time(ramadan.fajr)}</strong> · Iftar <strong>{time(ramadan.maghrib)}</strong>
+          </p>
+          {ramadan.city && <p className="hint">Worked out for {ramadan.city} from the sun's position (Fajr at 18 degrees); your mosque's timetable may differ by a few minutes.</p>}
+          <ul className="advice">
+            <li>
+              Water: {water[0]} glasses at iftar, {water[1]} through the evening, {water[2]} with dinner and {water[3]} at suhoor.
+            </li>
+            <li>Protein: about {fmt(Math.round(t.protein / 3 / 5) * 5)} g each at iftar, dinner and suhoor.</li>
+          </ul>
+        </>
+      )}
+      <label className="check">
+        <input type="checkbox" checked={vrat} disabled={f?.mode === 'navratri'} onChange={(e) => props.patch({ vrat: e.target.checked })} />
+        Vrat today (Ekadashi or another fast day)
+      </label>
+      {f?.mode === 'navratri' && <p className="hint">On for all of Navratri. Change it in More.</p>}
+      {vrat && (
+        <p className="hint">
+          Food search and the meal plan show only vrat foods. <a href="#food">Plan the day</a>
+        </p>
+      )}
+      {(f || vrat) && <p className="hint">Break the fast and see a doctor if you feel faint, dizzy, confused or unwell.</p>}
+    </Card>
+  );
+}

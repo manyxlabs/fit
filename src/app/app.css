@@ -46,12 +46,42 @@
   font-weight: 620;
 }
 
-.card > header a {
+.card > header a,
+.link-btn {
   flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--accent);
+  font: inherit;
   font-size: 0.9375rem;
   font-weight: 550;
   text-decoration: none;
+  cursor: pointer;
+}
+
+.plan-meal {
+  display: grid;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.plan-meal > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 12px;
+}
+
+.plan-meal h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.plan-meal .btn {
+  justify-self: start;
 }
 
 .stack {
