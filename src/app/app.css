@@ -509,9 +509,26 @@ details[open] summary {
 .poses figure,
 .pair figure {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   min-width: 0;
   margin: 0;
+}
+
+/* On the photo, so the caption fits a third of a 360px phone. */
+.poses figure {
+  position: relative;
+}
+
+.poses .delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  border-color: transparent;
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  color: var(--text);
 }
 
 .shot {
@@ -568,7 +585,7 @@ details[open] summary {
   min-width: 0;
 }
 
-.poses .icon-btn {
+.poses label.icon-btn {
   position: relative;
   width: 36px;
   height: 36px;

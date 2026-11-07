@@ -24,7 +24,8 @@ async function current(tx?: { objectStore(s: Store): { getAll(): Promise<unknown
 }
 const has = (rows: Awaited<ReturnType<typeof current>>, kind: Kind, date: string) => rows[TARGET[kind][0]].get(date)?.[TARGET[kind][1]] !== undefined;
 
-const short = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+// Unbroken, so a narrow phone never strands the year on its own line.
+const short = (date: string) => <span style={{ whiteSpace: 'nowrap' }}>{new Date(`${date}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>;
 
 const ALL = Object.keys(KINDS) as Kind[];
 
@@ -119,7 +120,7 @@ export function HealthImport() {
                     <input type="checkbox" checked={!skip.includes(kind)} onChange={(e) => setSkip(e.target.checked ? skip.filter((k) => k !== kind) : [...skip, kind])} />
                     <span>
                       <strong>{KINDS[kind]}</strong>: {fmt(s.length)} {s.length === 1 ? 'day' : 'days'}, {short(s[0][0])}
-                      {s.length > 1 && ` to ${short(s.at(-1)![0])}`}
+                      {s.length > 1 && <> to {short(s.at(-1)![0])}</>}
                       {here > 0 && <span className="muted"> ({fmt(here)} already logged)</span>}
                     </span>
                   </label>

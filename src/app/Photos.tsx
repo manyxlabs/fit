@@ -77,6 +77,11 @@ export function Photos() {
                   {photo ? <Img blob={photo.blob} alt={`${pose} on ${label(date)}`} /> : <span>+</span>}
                   {input(false)}
                 </label>
+                {photo && (
+                  <button type="button" className="icon-btn delete" aria-label={`Delete ${pose} photo`} onClick={() => remove([[date, pose]], `Delete the ${pose} photo from ${label(date)}?`)}>
+                    ×
+                  </button>
+                )}
                 <figcaption>
                   <span>{pose[0].toUpperCase() + pose.slice(1)}</span>
                   <label className="icon-btn">
@@ -85,11 +90,6 @@ export function Photos() {
                     </svg>
                     {input(true)}
                   </label>
-                  {photo && (
-                    <button type="button" className="icon-btn" aria-label={`Delete ${pose} photo`} onClick={() => remove([[date, pose]], `Delete the ${pose} photo from ${label(date)}?`)}>
-                      ×
-                    </button>
-                  )}
                 </figcaption>
               </figure>
             );
