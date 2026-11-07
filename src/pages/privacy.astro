@@ -11,10 +11,17 @@ import '../styles/pages.css';
   <main class="wrap page">
     <article class="prose">
       <h1>Privacy</h1>
-      <p>Everything you enter in Fit (your body, food, workouts, sleep, measurements) is stored only in your browser on your device. It is never sent to us or anyone else.</p>
-      <p>Progress photos are kept the same way, on your device only. Files you import from Apple Health, Samsung Health or Google Fit are read inside your browser and are never uploaded.</p>
+      <p>Everything you enter in Fit (your body, food, workouts, sleep, measurements) is stored in your browser on your device. We can never read it.</p>
+      <p>Progress photos stay on the device you took them on, even with sync on. Files you import from Apple Health, Samsung Health or Google Fit are read inside your browser and are never uploaded.</p>
       <p>There is no account, no analytics, no advertising and no cookies. The site is served by Cloudflare, which processes standard request data such as IP addresses to deliver pages and stop abuse.</p>
-      <p>Because your data lives only on your device, clearing the browser's site data deletes it. Use <strong>More → Download backup</strong> to keep a copy, and <strong>Delete everything</strong> to erase it.</p>
+      <p>Clearing the browser's site data deletes your data from that device. Use <strong>More → Download backup</strong> to keep a copy, and <strong>Delete everything</strong> to erase it.</p>
+      <h2>Sync between your devices</h2>
+      <p>Sync is off until you turn it on in More. It is end-to-end encrypted: your devices encrypt every record with a secret that exists only on them and in the sync link or QR code, and the link keeps it after the <code>#</code>, the part a browser never sends to a server.</p>
+      <p>While sync is on, our server (Cloudflare Durable Objects) stores, for each record, a random-looking id, the time it was saved, a random tag for the device that saved it, and the encrypted record, so also its size. It also stores a fingerprint (SHA-256) of an access code derived from the secret. Without the secret none of this can be read, by us or anyone else.</p>
+      <p><strong>Turn off sync</strong> deletes the encrypted copy from the server. <strong>Remove this device</strong> only stops this device syncing and leaves the copy for your other devices. A copy that no device has synced for 400 days is deleted automatically.</p>
+      <h2>Reminders</h2>
+      <p>Reminders are off until you turn them on in More. The server then stores your browser's push subscription (an address at your browser's push service and its public keys), your time zone and the reminder times you chose, and nothing about your health.</p>
+      <p>Each reminder is a generic message such as "Time to log lunch", encrypted for your browser and delivered by its push service (Google, Mozilla, Apple or Microsoft). Turning reminders off deletes the subscription from the server.</p>
       <p>The code is open source at <a href={REPO}>{REPO.replace('https://', '')}</a>, so you can check all of this. Questions: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</p>
     </article>
   </main>

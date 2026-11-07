@@ -211,7 +211,7 @@ function Compare({ photos }: { photos: Photo[] }) {
           ) : (
             a &&
             b && (
-              <div className="pair">
+              <div className="compare">
                 {[a, b].map((p, i) => (
                   <figure key={i}>
                     <Img blob={p.blob} alt={`${i ? 'After' : 'Before'}, ${label(p.date)}`} />

@@ -1,12 +1,12 @@
 import { useState, type SubmitEvent } from 'react';
 import { FOODS, fits, search, type Food as DbFood } from '../data/foods';
+import { MEALS, type Meal } from '../data/meals';
 import { vratDay } from '../lib/fasting';
-import { addDays, db, foodRef, today, type CustomFood, type FoodRef, type Meal, type Profile } from './db';
+import { addDays, db, foodRef, today, type CustomFood, type FoodRef, type Profile } from './db';
 import { kcalOf, targets, totals, useAsync, useBump } from './hooks';
 import { Plan } from './Plan';
 import { Bar, Card, DateNav, fmt } from './ui';
 
-const MEALS: Record<Meal, string> = { breakfast: 'Breakfast', lunch: 'Lunch', snacks: 'Snacks', dinner: 'Dinner' };
 const RAMADAN_MEALS: Record<Meal, string> = { ...MEALS, breakfast: 'Suhoor', snacks: 'Iftar' };
 
 type Pickable = FoodRef & { units: [string, number][]; aliases?: string[]; vrat?: boolean };

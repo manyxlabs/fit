@@ -7,6 +7,9 @@ import { Food } from './Food';
 import { Train } from './Train';
 import { Progress } from './Progress';
 import { More } from './More';
+import { refreshReminders } from './Reminders';
+import { Join } from './Pairing';
+import { scheduleSync, secretIn, startSync } from './sync';
 import './app.css';
 
 const TABS = { today: 'Today', food: 'Food', train: 'Train', progress: 'Progress', more: 'More' } as const;
@@ -15,7 +18,15 @@ const tabOf = (hash: string): Tab => (hash.slice(1) in TABS ? (hash.slice(1) as 
 
 export default function App() {
   const [v, setV] = useState(0);
-  const bump = useCallback(() => setV((x) => x + 1), []);
+  // Every write bumps, so every write is sent to the other devices; what they send only refreshes.
+  const bump = useCallback(() => {
+    setV((x) => x + 1);
+    scheduleSync();
+  }, []);
+  useEffect(() => {
+    startSync(() => setV((x) => x + 1));
+    void refreshReminders().catch(() => {});
+  }, []);
   return (
     <Version.Provider value={{ v, bump }}>
       <Shell />
@@ -26,8 +37,12 @@ export default function App() {
 function Shell() {
   const profile = useAsync(() => getSetting('profile').then((p) => p ?? null), []);
   const [tab, setTab] = useState<Tab>(() => tabOf(location.hash));
+  const [joining, setJoining] = useState(() => secretIn(location.hash));
   useEffect(() => {
-    const on = () => setTab(tabOf(location.hash));
+    const on = () => {
+      setTab(tabOf(location.hash));
+      setJoining(secretIn(location.hash));
+    };
     addEventListener('hashchange', on);
     return () => removeEventListener('hashchange', on);
   }, []);
@@ -35,6 +50,18 @@ function Shell() {
     scrollTo(0, 0);
   }, [tab]);
 
+  if (joining)
+    return (
+      <Join
+        secret={joining}
+        done={() => {
+          // Replaced rather than followed, so Back never offers to pair again, and the secret leaves the address bar.
+          history.replaceState(null, '', '#more');
+          setJoining(undefined);
+          setTab('more');
+        }}
+      />
+    );
   if (profile === undefined) return null;
   if (profile === null) return <Onboarding />;
   return (

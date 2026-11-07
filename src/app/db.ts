@@ -4,6 +4,7 @@ import type { CheckIn, SetLog } from '../lib/coach';
 import type { Equipment, ExerciseId } from '../data/exercises';
 import type { Diet, SupplementId } from '../data/supplements';
 import type { Plan, ProgramId } from '../data/programs';
+import type { Meal } from '../data/meals';
 import type { Fasting } from '../lib/fasting';
 
 export type Profile = {
@@ -28,7 +29,7 @@ export type Profile = {
 /** Per 100 g. Copied into each log entry, so later edits to a food never rewrite history. */
 export type Nutrients = { kcal: number; protein: number; carbs: number; fat: number; fibre: number };
 export type FoodRef = Nutrients & { name: string; diet: Diet };
-export type Meal = 'breakfast' | 'lunch' | 'snacks' | 'dinner';
+export type { Meal };
 export type FoodEntry = { id?: number; date: string; meal: Meal; food: FoodRef; grams: number };
 export type CustomFood = FoodRef & { id?: number; vrat?: boolean };
 
