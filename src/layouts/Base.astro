@@ -1,0 +1,389 @@
+---
+import '@fontsource-variable/inter';
+// Latin covers every page's text, so fetching it early keeps the swap from shifting layout late.
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import { BRAND } from '../site';
+
+type Props = {
+  /** Without the brand, which is added when the whole still fits a search result (60 characters). */
+  title: string;
+  description: string;
+  /** schema.org objects, for search results. */
+  schema?: Record<string, unknown>[];
+  noindex?: boolean;
+};
+
+const { title, description, schema = [], noindex } = Astro.props;
+const brand = ` - ${BRAND}`;
+const fullTitle = title.length + brand.length <= 60 ? title + brand : title;
+// "</script>" inside a string would end the tag early.
+const ld = (o: Record<string, unknown>) => JSON.stringify({ '@context': 'https://schema.org', ...o }).replace(/</g, '\\u003c');
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#050506" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+    {
+      noindex ? (
+        <meta name="robots" content="noindex" />
+      ) : (
+        <>
+          <link rel="canonical" href={canonical} />
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content={BRAND} />
+          <meta property="og:locale" content="en_IN" />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={description} />
+          <meta property="og:url" content={canonical} />
+        </>
+      )
+    }
+    <!-- Before first paint, so a saved theme never flashes the other one. -->
+    <script is:inline>
+      try {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
+    {schema.map((o) => <script type="application/ld+json" set:html={ld(o)} />)}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  /* Each token holds both themes; color-scheme picks one, so the toggle only sets that. */
+  :root {
+    color-scheme: light dark;
+    --bg: light-dark(#f5f6f8, #050506);
+    --border: light-dark(#e4e4e8, #1f1f23);
+    --glass: light-dark(rgb(255 255 255 / 0.55), rgb(28 28 32 / 0.5));
+    --glass-edge: light-dark(rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.1));
+    --glass-shine: light-dark(rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.08));
+    --shadow: light-dark(rgb(15 23 42 / 0.12), rgb(0 0 0 / 0.55));
+    --text: light-dark(#1d1d1f, #f5f5f7);
+    --muted: light-dark(#6e6e73, #a1a1a6);
+    --accent: light-dark(#059669, #34d399);
+    --accent-soft: light-dark(rgb(5 150 105 / 0.1), rgb(52 211 153 / 0.12));
+    --on-accent: light-dark(#ffffff, #050506);
+  }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter Variable', system-ui, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The colour field the glass frosts. Fixed, so panes shift tint as the page scrolls. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(42rem 32rem at 12% 8%, light-dark(rgb(16 185 129 / 0.2), rgb(16 185 129 / 0.2)), transparent 70%),
+      radial-gradient(38rem 30rem at 90% 18%, light-dark(rgb(56 189 248 / 0.2), rgb(59 130 246 / 0.16)), transparent 70%),
+      radial-gradient(44rem 34rem at 55% 92%, light-dark(rgb(167 139 250 / 0.18), rgb(139 92 246 / 0.14)), transparent 70%);
+    pointer-events: none;
+  }
+
+  .glass {
+    border: 1px solid var(--glass-edge);
+    background: var(--glass);
+    box-shadow:
+      inset 0 1px 0 var(--glass-shine),
+      0 12px 40px -18px var(--shadow);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .glass {
+      background: light-dark(#ffffff, #141417);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 20px;
+    border: 1px solid var(--glass-edge);
+    border-radius: 999px;
+    background: var(--glass);
+    box-shadow: inset 0 1px 0 var(--glass-shine);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
+    font-size: 0.9375rem;
+    font-weight: 550;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .btn:hover {
+    border-color: var(--muted);
+  }
+
+  .btn.primary {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      0 8px 24px -10px var(--accent);
+    color: var(--on-accent);
+  }
+
+  .btn.primary:hover {
+    filter: brightness(1.08);
+  }
+
+  /* Component display rules would otherwise override the hidden attribute. */
+  [hidden] {
+    display: none !important;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 1040px;
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+
+  @media (min-width: 640px) {
+    .wrap {
+      padding-inline: 32px;
+    }
+  }
+
+  /* The building blocks every tool's form is made of. */
+  .tool {
+    display: grid;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .panel {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .panel > h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.0625rem;
+    font-weight: 620;
+  }
+
+  .panel > h2 > span {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.8125rem;
+  }
+
+  .drop {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    justify-items: center;
+    padding: 28px 16px;
+    border: 1px dashed color-mix(in srgb, var(--muted) 45%, transparent);
+    border-radius: 12px;
+    color: var(--muted);
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .drop strong {
+    color: var(--accent);
+  }
+
+  .drop:hover,
+  .drop:focus-within {
+    border-color: var(--accent);
+  }
+
+  .drop input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  @media (min-width: 560px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.875rem;
+    font-weight: 550;
+  }
+
+  .field :is(select, input:not([type='range'], [type='checkbox'], [type='radio']), textarea) {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-weight: 400;
+  }
+
+  .field textarea {
+    padding-block: 10px;
+    resize: vertical;
+  }
+
+  input[type='range'] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  .check {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.9375rem;
+  }
+
+  .check input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .hint a {
+    color: var(--accent);
+  }
+
+  .error {
+    color: light-dark(#dc2626, #f87171);
+    font-size: 0.875rem;
+  }
+
+  /* A checkerboard, so a preview's own white edges stay visible. */
+  .stage {
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    border-radius: 12px;
+    background: repeating-conic-gradient(var(--border) 0 25%, transparent 0 50%) 0 0 / 16px 16px;
+  }
+
+  .result {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .result p {
+    font-size: 0.9375rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  button.btn {
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  button.btn.primary {
+    color: var(--on-accent);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>

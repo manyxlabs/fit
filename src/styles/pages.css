@@ -1,0 +1,243 @@
+/* The public pages: home, calculators, guides. */
+
+.page {
+  display: grid;
+  gap: 24px;
+  padding-block: 24px 48px;
+}
+
+.page h1 {
+  font-size: clamp(1.875rem, 5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.lede {
+  max-width: 44rem;
+  color: var(--muted);
+  font-size: 1.125rem;
+}
+
+.crumbs {
+  margin-bottom: -16px;
+  font-size: 0.875rem;
+}
+
+.crumbs a,
+.prose a,
+.links a,
+.more-links a,
+.next a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.crumbs a:hover,
+.prose a:hover,
+.links a:hover,
+.more-links a:hover,
+.next a:hover {
+  text-decoration: underline;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero {
+  display: grid;
+  gap: 16px;
+  padding-block: 32px 8px;
+}
+
+.features,
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.features li {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.features h2 {
+  font-size: 1.0625rem;
+}
+
+.features p,
+.tile span {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.tile {
+  display: grid;
+  gap: 4px;
+  height: 100%;
+  padding: 18px 20px;
+  border-radius: 20px;
+  text-decoration: none;
+}
+
+.tile:hover {
+  border-color: var(--accent);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 24px;
+}
+
+.split h2,
+.more-links h2 {
+  margin-bottom: 8px;
+  font-size: 1.25rem;
+}
+
+.links,
+.more-links ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.more-links ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.calc {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.calc .field.wide {
+  grid-column: 1 / -1;
+}
+
+.calc-out {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.calc-out > .hint,
+.calc-table {
+  grid-column: 1 / -1;
+}
+
+.stat {
+  display: grid;
+  gap: 2px;
+}
+
+.stat strong {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.calc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-table :is(th, td) {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.calc-table th {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 550;
+}
+
+.prose {
+  display: grid;
+  gap: 14px;
+  max-width: 44rem;
+}
+
+.prose h2 {
+  margin-top: 16px;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
+}
+
+.prose h3 {
+  margin-top: 8px;
+  font-size: 1.0625rem;
+}
+
+.prose :is(ul, ol) {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.prose :is(th, td) {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose th {
+  font-weight: 600;
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.cta div {
+  display: grid;
+  flex: 1 1 320px;
+  gap: 4px;
+}
+
+.cta h2 {
+  font-size: 1.125rem;
+}
+
+.cta p {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}

@@ -1,0 +1,11 @@
+// fit.manyxlabs.com: static pages only. Everyone's logs stay in their own browser.
+{
+  "name": "fit",
+  "routes": [{ "pattern": "fit.manyxlabs.com", "custom_domain": true }],
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

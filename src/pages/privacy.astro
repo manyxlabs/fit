@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { EMAIL, REPO } from '../site';
+import '../styles/pages.css';
+---
+
+<Base title="Privacy" description="Fit keeps your health data in your own browser. No account, no tracking, no ads.">
+  <Header />
+  <main class="wrap page">
+    <article class="prose">
+      <h1>Privacy</h1>
+      <p>Everything you enter in Fit (your body, food, workouts, sleep, measurements) is stored only in your browser on your device. It is never sent to us or anyone else.</p>
+      <p>There is no account, no analytics, no advertising and no cookies. The site is served by Cloudflare, which processes standard request data such as IP addresses to deliver pages and stop abuse.</p>
+      <p>Because your data lives only on your device, clearing the browser's site data deletes it. Use <strong>More → Download backup</strong> to keep a copy, and <strong>Delete everything</strong> to erase it.</p>
+      <p>The code is open source at <a href={REPO}>{REPO.replace('https://', '')}</a>, so you can check all of this. Questions: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</p>
+    </article>
+  </main>
+  <Footer />
+</Base>
