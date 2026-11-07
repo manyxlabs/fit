@@ -1,11 +1,24 @@
-// fit.manyxlabs.com: static pages only. Everyone's logs stay in their own browser.
+// fit.manyxlabs.com: the static site, plus end-to-end encrypted sync and reminders under /api.
+// Everyone's logs stay in their own browsers; the server holds only ciphertext and reminder times.
 {
   "name": "fit",
+  "main": "worker/index.ts",
   "routes": [{ "pattern": "fit.manyxlabs.com", "custom_domain": true }],
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "html_handling": "auto-trailing-slash"
-  }
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": ["/api/*"]
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "ROOMS", "class_name": "Room" },
+      { "name": "REMINDERS", "class_name": "Reminder" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room", "Reminder"] }],
+  // Per IP; a person's devices make a few requests a minute.
+  "ratelimits": [{ "name": "LIMITER", "namespace_id": "1001", "simple": { "limit": 300, "period": 60 } }]
 }

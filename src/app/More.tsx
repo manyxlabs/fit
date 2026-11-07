@@ -4,12 +4,16 @@ import { backup, db, restore, STORES, today, type Profile } from './db';
 import { targets, totals, useAsync, useBump } from './hooks';
 import { saveProfile } from './Onboarding';
 import { ProfileForm } from './ProfileForm';
+import { RemindersCard } from './Reminders';
+import { SyncCard } from './Pairing';
+import { useSyncState } from './sync';
 import { Card } from './ui';
 
 export function More({ profile }: { profile: Profile }) {
   const bump = useBump();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string>();
+  const synced = useSyncState().on;
   const gap = useAsync(async () => {
     const t = await targets(profile);
     const eaten = totals(await (await db).getAllFromIndex('food', 'date', today()));
@@ -70,8 +74,15 @@ export function More({ profile }: { profile: Profile }) {
         />
       </Card>
 
+      <SyncCard />
+      <RemindersCard />
+
       <Card title="Your data">
-        <p className="hint">Everything lives only in this browser. Download a backup now and then, and restore it on a new phone or after clearing the browser.</p>
+        <p className="hint">
+          {synced
+            ? 'Everything lives in this browser and your synced devices. Download a backup now and then, to keep a copy of your own.'
+            : 'Everything lives only in this browser. Download a backup now and then, and restore it on a new phone or after clearing the browser.'}
+        </p>
         <div className="row">
           <button type="button" className="btn primary" onClick={download}>
             Download backup
@@ -85,7 +96,7 @@ export function More({ profile }: { profile: Profile }) {
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 e.target.value = '';
-                if (!file || !confirm('Replace everything here with this backup?')) return;
+                if (!file || !confirm(synced ? 'Replace everything here and on your synced devices with this backup?' : 'Replace everything here with this backup?')) return;
                 try {
                   await restore(JSON.parse(await file.text()));
                   setError(undefined);
@@ -100,7 +111,8 @@ export function More({ profile }: { profile: Profile }) {
             type="button"
             className="btn danger"
             onClick={async () => {
-              if (!confirm('Delete all your data from this browser? This cannot be undone.')) return;
+              if (!confirm(synced ? 'Delete all your data from this browser and your synced devices? This cannot be undone.' : 'Delete all your data from this browser? This cannot be undone.'))
+                return;
               const d = await db;
               await Promise.all(STORES.map((s) => d.clear(s)));
               bump();
