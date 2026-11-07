@@ -32,6 +32,7 @@ const site = {
   home: {
     title: 'Free fitness tracker for calories, diet and training',
     description: 'Calories, macros, Indian veg and non-veg food, workouts, recovery and supplements in one free app. No account, no ads, and only you can read your data.',
+    eyebrow: 'Free and open source · No account',
     heading: 'Everything for your fitness, in one free app',
     lede: 'Calories, Indian veg and non-veg food, training, recovery, supplements and progress. It plans each day and adjusts as you go. No account, no ads, and only you can ever read your data.',
     start: 'Start free',

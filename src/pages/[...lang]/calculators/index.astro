@@ -18,9 +18,9 @@ const { t, calc, href } = pageLocale(Astro.url);
     <p class="lede">{t.calculators.lede}</p>
     <ul class="tiles">
       {
-        CALCULATORS.map((c) => (
+        CALCULATORS.map((c, i) => (
           <li>
-            <a class="tile glass" href={href(`/calculators/${c.slug}/`)}>
+            <a class="tile glass spotlight reveal" style={`--i: ${i % 3}`} href={href(`/calculators/${c.slug}/`)}>
               <strong>{calc.pages[c.slug].name}</strong>
               <span>{calc.pages[c.slug].description}</span>
             </a>

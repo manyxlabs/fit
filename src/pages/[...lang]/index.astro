@@ -27,24 +27,25 @@ const POPULAR: ExerciseId[] = ['backSquat', 'benchPress', 'deadlift', 'ohp', 'pu
   <Header />
   <main class="wrap page">
     <section class="hero">
-      <h1>{c.heading}</h1>
-      <p class="lede">{c.lede}</p>
-      <div class="row">
+      <p class="pill glass reveal"><span class="live"></span>{c.eyebrow}</p>
+      <h1 class="text-sheen">{c.heading}</h1>
+      <p class="lede reveal" style="--i: 1">{c.lede}</p>
+      <div class="row reveal" style="--i: 2">
         <a class="btn primary" href={appHref(locale)}>{c.start}</a>
         <a class="btn" href={href('/calculators/')}>{c.tryCalculator}</a>
       </div>
     </section>
     <ul class="features">
       {
-        c.features.map(([title, d]) => (
-          <li class="glass">
+        c.features.map(([title, d], i) => (
+          <li class="glass spotlight reveal" style={`--i: ${i % 3}`}>
             <h2>{title}</h2>
             <p>{d}</p>
           </li>
         ))
       }
     </ul>
-    <section class="split">
+    <section class="split reveal">
       <div>
         <h2>{c.calculators}</h2>
         <ul class="links">{CALCULATORS.map((x) => <li><a href={href(`/calculators/${x.slug}/`)}>{calc.pages[x.slug].name}</a></li>)}</ul>
