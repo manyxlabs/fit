@@ -138,18 +138,25 @@ const dataUrl = (blob: Blob) =>
     r.readAsDataURL(blob);
   });
 
+/** Why a file could not be restored, for the More tab to say in the app's language. */
+export class BadBackup extends Error {
+  constructor(readonly code: 'notFit' | 'photo') {
+    super(code);
+  }
+}
+
 /**
  * Replaces everything with a backup's contents, in one transaction so a bad file changes nothing.
  * A backup taken without photos leaves the photos here as they are.
  */
 export async function restore(data: Record<string, unknown>) {
-  if (data.app !== 'fit' || data.version !== 1) throw new Error('This is not a Fit backup.');
+  if (data.app !== 'fit' || data.version !== 1) throw new BadBackup('notFit');
   // Decoded first: a transaction that awaits anything but its own requests commits early.
   const photos =
     data.photos &&
     (await Promise.all(
       (data.photos as (Omit<Photo, 'blob'> & { jpeg: string })[]).map(async ({ jpeg, ...p }) => {
-        if (!jpeg?.startsWith('data:image/jpeg;base64,') || !POSES.includes(p.pose)) throw new Error('This backup has a damaged photo.');
+        if (!jpeg?.startsWith('data:image/jpeg;base64,') || !POSES.includes(p.pose)) throw new BadBackup('photo');
         return { ...p, blob: await (await fetch(jpeg)).blob() };
       }),
     ));

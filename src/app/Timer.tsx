@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { POSES, type Pose } from '../data/poses';
 import { RUN, type Hold, type RunDay, type RunStep } from '../data/programs';
 import type { Settings } from './db';
+import { d, fill, t } from './i18n';
 import { Bar, clock } from './ui';
 
 export type Step = { label: string; seconds: number; hint: string; met?: number };
@@ -9,32 +10,33 @@ export type TimerState = Omit<NonNullable<Settings['timer']>, 'day'>;
 
 const GET_READY = 5;
 
-const runStep = ([kind, seconds]: RunStep): Step => ({ label: RUN[kind].label, seconds, hint: RUN[kind].effort, met: RUN[kind].met });
+const runStep = ([kind, seconds]: RunStep): Step => ({ label: d.run[kind].label, seconds, hint: d.run[kind].effort, met: RUN[kind].met });
 
 export const runSteps = (d: RunDay): Step[] => [runStep(d.warm), ...Array.from({ length: d.reps }, () => d.set.map(runStep)).flat(), runStep(d.cool)];
 
 export const holdSteps = (holds: Hold[]): Step[] =>
   holds.flatMap(([id, seconds]) => {
-    const p: Pose = POSES[id];
-    const sides = p.sides ? [`${p.name}, left`, `${p.name}, right`] : [p.name];
+    const { name: pose, cue: hint } = d.poses[id];
+    const sides = (POSES[id] as Pose).sides ? [fill(t.train.timer.left, { pose }), fill(t.train.timer.right, { pose })] : [pose];
     return sides.flatMap((label) => [
-      { label: `Get ready: ${label}`, seconds: GET_READY, hint: p.cue },
-      { label, seconds, hint: p.cue },
+      { label: fill(t.train.timer.getReady, { pose: label }), seconds: GET_READY, hint },
+      { label, seconds, hint },
     ]);
   });
 
 export const totalSeconds = (steps: Step[]) => steps.reduce((s, x) => s + x.seconds, 0);
 
-const part = ([kind, seconds]: RunStep) => `${clock(seconds)} ${RUN[kind].label.toLowerCase()}`;
+const part = ([kind, seconds]: RunStep) => fill(t.train.runSummary.step[kind], { time: clock(seconds) });
 
 /** For example "5:00 walk, 8 × (1:00 run, 1:30 walk), 5:00 walk, 25 min". */
-export function runSummary(d: RunDay) {
-  const set = d.set.map(part).join(', ');
-  const main = d.reps > 1 ? `${d.reps} × ${d.set.length > 1 ? `(${set})` : set}` : set;
-  return `${part(d.warm)}, ${main}, ${part(d.cool)}, ${Math.round(totalSeconds(runSteps(d)) / 60)} min`;
+export function runSummary(day: RunDay) {
+  const s = t.train.runSummary;
+  const set = day.set.map(part).join(', ');
+  const main = day.reps > 1 ? fill(day.set.length > 1 ? s.repeatGroup : s.repeat, { reps: day.reps, set }) : set;
+  return fill(s.all, { warm: part(day.warm), main, cool: part(day.cool), min: Math.round(totalSeconds(runSteps(day)) / 60) });
 }
 
-export const holdLabel = ([id, seconds]: Hold) => `${seconds} s${(POSES[id] as Pose).sides ? ' each side' : ''}`;
+export const holdLabel = ([id, seconds]: Hold) => fill((POSES[id] as Pose).sides ? t.train.timer.holdEachSide : t.train.timer.hold, { s: seconds });
 
 export const elapsedMs = (t: TimerState, now: number) => (t.pausedAt ?? now) - t.started - t.paused;
 
@@ -107,26 +109,26 @@ export function IntervalTimer(props: { steps: Step[]; timer: TimerState; onTimer
   };
   return (
     <div className="interval">
-      <p className="interval-step">{done ? 'Done' : step.label}</p>
-      <p className="interval-clock num" role="timer" aria-label={done ? 'Done' : `${step.label}, time left`}>
+      <p className="interval-step">{done ? t.train.timer.done : step.label}</p>
+      <p className="interval-clock num" role="timer" aria-label={done ? t.train.timer.done : fill(t.train.timer.timeLeft, { step: step.label })}>
         {clock(Math.ceil(done ? 0 : end - elapsed))}
       </p>
       {!done && <p className="hint">{step.hint}</p>}
-      {!done && steps[i + 1] && <p className="muted">Next: {steps[i + 1].label}</p>}
-      <Bar label="Session" value={elapsed / 60} target={total / 60} unit="min" />
+      {!done && steps[i + 1] && <p className="muted">{fill(t.train.timer.next, { step: steps[i + 1].label })}</p>}
+      <Bar label={t.train.timer.session} value={elapsed / 60} target={total / 60} unit="min" />
       {!done && (
         <div className="row">
           {running ? (
             <button type="button" className="btn" onClick={() => move({ ...timer, pausedAt: Date.now() })}>
-              Pause
+              {t.train.timer.pause}
             </button>
           ) : (
             <button type="button" className="btn primary" onClick={() => move({ started: timer.started, paused: timer.paused + Date.now() - timer.pausedAt! })}>
-              Resume
+              {t.train.timer.resume}
             </button>
           )}
           <button type="button" className="btn" onClick={() => move({ ...timer, started: timer.started - (end - elapsed) * 1000 })}>
-            Skip
+            {t.train.timer.skip}
           </button>
         </div>
       )}

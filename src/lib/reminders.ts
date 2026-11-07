@@ -1,6 +1,8 @@
 // Reminder schedules, shared by the app (which edits them) and the Worker (which sends them).
 // A schedule holds times of day only, never anything logged, so the server learns nothing about health.
 import { MEALS, type Meal } from '../data/meals';
+import type { Locale } from '../i18n/locales';
+import { PUSH } from '../i18n/push';
 
 /** "HH:MM", 24-hour, in the person's own timezone. */
 export type Time = string;
@@ -17,17 +19,10 @@ export type Kind = 'weighIn' | Meal | 'water' | 'workout' | 'bedtime';
 
 export const WATER_EVERY = [60, 90, 120, 180];
 
-/** What a notification says, and the app tab it opens. Generic on purpose: it passes through the push service. */
-export const message = (kind: Kind): { body: string; tab: string } =>
-  kind === 'weighIn'
-    ? { body: 'Time for your morning weigh-in', tab: 'today' }
-    : kind === 'water'
-      ? { body: 'Time for a glass of water', tab: 'today' }
-      : kind === 'workout'
-        ? { body: 'Time to train', tab: 'train' }
-        : kind === 'bedtime'
-          ? { body: 'Time to wind down for bed', tab: 'today' }
-          : { body: `Time to log ${MEALS[kind].toLowerCase()}`, tab: 'food' };
+const TAB: Record<Kind, string> = { weighIn: 'today', breakfast: 'food', lunch: 'food', snacks: 'food', dinner: 'food', water: 'today', workout: 'train', bedtime: 'today' };
+
+/** What a notification says, in the person's language, and the app tab it opens. */
+export const message = (kind: Kind, lang: Locale) => ({ title: PUSH[lang].title, body: PUSH[lang].body[kind], tab: TAB[kind] });
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 const minutes = (t: Time) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));

@@ -1,5 +1,5 @@
 // Builds src/data/foods.json from data/ingredients.json (USDA) and data/recipes.json (our recipes).
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const root = new URL('../', import.meta.url);
 const read = (path) => JSON.parse(readFileSync(new URL(path, root), 'utf8'));
@@ -97,6 +97,19 @@ for (const { name } of foods) {
   if (names.has(key)) fail(`duplicate food name ${JSON.stringify(name)}`);
   names.add(key);
 }
+
+// Names in each Indian language's script, so search finds a food however it is typed; the food's
+// name itself stays English everywhere, as menus and packs in India print it.
+const byName = new Map(foods.map((f) => [f.name, f]));
+for (const file of readdirSync(new URL('data/aliases/', root)).filter((f) => f.endsWith('.json')).sort()) {
+  for (const [name, list] of Object.entries(read(`data/aliases/${file}`))) {
+    const f = byName.get(name) ?? fail(`data/aliases/${file}: no food ${JSON.stringify(name)}`);
+    if (!Array.isArray(list) || !list.every((a) => typeof a === 'string' && a.trim() === a && a)) fail(`data/aliases/${file}: ${name}: aliases must be trimmed, non-empty strings`);
+    f.aliases = [...new Set([...(f.aliases ?? []), ...list])];
+  }
+}
+// Aliases next to the name, where food() puts them, so the file reads the same either way.
+for (const [i, { name, aliases, ...rest }] of foods.entries()) foods[i] = { name, ...(aliases && { aliases }), ...rest };
 
 writeFileSync(new URL('src/data/foods.json', root), `[\n${foods.map((f) => JSON.stringify(f)).join(',\n')}\n]\n`);
 console.log(`Wrote ${foods.length} foods to src/data/foods.json`);

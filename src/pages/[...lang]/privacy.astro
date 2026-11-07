@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { pageLocale } from '../../i18n';
+import { link, richHtml } from '../../i18n/html';
+import { fill } from '../../i18n/intl';
+import { langParams } from '../../i18n/locales';
+import { EMAIL, REPO } from '../../site';
+import '../../styles/pages.css';
+
+export const getStaticPaths = () => langParams().map((lang) => ({ params: { lang } }));
+const { t } = pageLocale(Astro.url);
+const p = t.privacy;
+const contact = richHtml(fill(p.contact, { repo: REPO.replace('https://', ''), email: EMAIL }), { repo: link(REPO), email: link(`mailto:${EMAIL}`) });
+---
+
+<Base og="privacy" title={p.title} description={p.description}>
+  <Header />
+  <main class="wrap page">
+    <article class="prose">
+      <h1>{p.heading}</h1>
+      {p.prevails && <p class="hint">{p.prevails}</p>}
+      {p.body.map((x) => <p set:html={richHtml(x)} />)}
+      <h2>{p.syncHeading}</h2>
+      {p.sync.map((x) => <p set:html={richHtml(x)} />)}
+      <h2>{p.remindersHeading}</h2>
+      {p.reminders.map((x) => <p set:html={richHtml(x)} />)}
+      <p set:html={contact} />
+    </article>
+  </main>
+  <Footer />
+</Base>

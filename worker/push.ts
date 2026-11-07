@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import { message, next, parseSchedule, validTimeZone, type Kind, type Schedule } from '../src/lib/reminders';
+import { isLocale, type Locale } from '../src/i18n/locales';
 import { EMAIL } from '../src/site';
 import { unb64 } from './b64';
 import type { Env } from './index';
@@ -11,14 +12,15 @@ import { send, type Subscription } from './webpush';
 // whether or not anything is due, and need one store of every subscription to search each time,
 // which becomes the bottleneck as people join.
 
-type Saved = { sub: Subscription; tz: string; schedule: Schedule; due: { at: number; kinds: Kind[] } | null };
+/** `lang` is missing from subscriptions saved before reminders were translated; they stay English. */
+type Saved = { sub: Subscription; tz: string; lang?: Locale; schedule: Schedule; due: { at: number; kinds: Kind[] } | null };
 /** A reminder later than this is dropped rather than sent, and push services drop it once this old. */
 const STALE = 30 * 60_000;
 const MAX_BODY = 4096;
 // Every browser's push service; anything else would let the Worker be used to post at any URL.
 const SERVICES = /^(fcm\.googleapis\.com|android\.googleapis\.com|updates\.push\.services\.mozilla\.com|[\w-]+\.push\.apple\.com|[\w-]+\.notify\.windows\.com)$/;
 
-/** Holds one browser's subscription, timezone and schedule, nothing else, and sends its reminders. */
+/** Holds one browser's subscription, timezone, language and schedule, nothing else, and sends its reminders. */
 export class Reminder extends DurableObject<Env> {
   async set(saved: Omit<Saved, 'due'>) {
     await this.plan(saved, Date.now());
@@ -40,7 +42,7 @@ export class Reminder extends DurableObject<Env> {
     if (saved.due && now - saved.due.at < STALE) {
       for (const kind of saved.due.kinds) {
         try {
-          const res = await send(saved.sub, JSON.stringify({ title: 'Fit', tag: kind, ...message(kind) }), {
+          const res = await send(saved.sub, JSON.stringify({ tag: kind, ...message(kind, saved.lang ?? 'en') }), {
             vapid: { publicKey: this.env.VAPID_PUBLIC_KEY!, privateKey: this.env.VAPID_PRIVATE_KEY! },
             subject: `mailto:${EMAIL}`,
             topic: kind,
@@ -93,7 +95,7 @@ export async function handlePush(request: Request, env: Env) {
   const length = Number(request.headers.get('Content-Length'));
   if (!request.headers.has('Content-Length') || !Number.isSafeInteger(length)) return new Response('Length required', { status: 411 });
   if (length > MAX_BODY) return new Response('Too large', { status: 413 });
-  let body: { subscription?: Subscription; endpoint?: string; tz?: unknown; schedule?: unknown };
+  let body: { subscription?: Subscription; endpoint?: string; tz?: unknown; lang?: unknown; schedule?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -106,9 +108,9 @@ export async function handlePush(request: Request, env: Env) {
   }
   const sub = body.subscription;
   const schedule = parseSchedule(body.schedule);
-  if (!sub || !endpointOk(sub.endpoint, env) || !keyOk(sub.keys?.p256dh, 65) || !keyOk(sub.keys?.auth, 16) || !validTimeZone(body.tz) || !schedule)
+  if (!sub || !endpointOk(sub.endpoint, env) || !keyOk(sub.keys?.p256dh, 65) || !keyOk(sub.keys?.auth, 16) || !validTimeZone(body.tz) || !isLocale(body.lang) || !schedule)
     return new Response('Bad request', { status: 400 });
   // Rebuilt from the checked fields, so nothing else a client sends is ever stored.
-  await (await reminder(env, sub.endpoint)).set({ sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, tz: body.tz, schedule });
+  await (await reminder(env, sub.endpoint)).set({ sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, tz: body.tz, lang: body.lang, schedule });
   return new Response(null, { status: 204 });
 }

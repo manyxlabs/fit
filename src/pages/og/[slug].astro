@@ -9,6 +9,7 @@ import * as c from '../../lib/calc';
 import { fmt } from '../../lib/fmt';
 import { markSvg } from '../../mark';
 import { BRAND } from '../../site';
+import en from '../../i18n/en/data';
 
 type Card = { eyebrow: string; title: string; panel: string; rows: [label: string, value: string][] };
 
@@ -25,13 +26,13 @@ export function getStaticPaths() {
   const zones = c.heartRateZones(age, 60);
   const example = 'Man, 25, 175 cm, 75 kg';
   const calcCards: Record<string, Card['rows']> = {
-    bmi: [['75 kg at 175 cm', `BMI ${fmt(c.bmi(kg, cm), 1)}`], ['Asian cut-offs', c.bmiBand(c.bmi(kg, cm), true)], ['Healthy weight', `${fmt(lo, 1)}-${fmt(hi, 1)} kg`]],
+    bmi: [['75 kg at 175 cm', `BMI ${fmt(c.bmi(kg, cm), 1)}`], ['Asian cut-offs', en.bmi[c.bmiBand(c.bmi(kg, cm), true)]], ['Healthy weight', `${fmt(lo, 1)}-${fmt(hi, 1)} kg`]],
     tdee: [['Resting (BMR)', `${fmt(c.bmr({ sex: 'male', kg, cm, age }))} kcal`], ['Maintenance', `${fmt(tdee)} kcal`], ['Losing 0.5% a week', `${fmt(at(c.RATES.lose.default))} kcal`], ['Lean gain', `${fmt(at(c.RATES.gain.default))} kcal`]],
     macros: [['Calories', `${fmt(tdee)} kcal`], ['Protein', `${fmt(m.protein)} g`], ['Fat', `${fmt(m.fat)} g`], ['Carbs', `${fmt(m.carbs)} g`]],
     protein: (['lose', 'recomp', 'gain', 'maintain'] as const).map((goal) => [{ lose: 'Losing fat', recomp: 'Recomposition', gain: 'Gaining', maintain: 'Maintaining' }[goal], `${fmt(c.macros({ kcal: tdee, kg, cm, goal }).protein)} g a day`]),
     'body-fat': [['Neck 38 cm, waist 84 cm', `${fmt(fat, 1)}% body fat`], ['Lean mass', `${fmt(kg * (1 - fat / 100), 1)} kg`], ['Fat-free mass index', fmt(c.ffmi(kg, cm, fat), 1)]],
     'one-rep-max': [['80 kg × 8, 2 in reserve', `${fmt(c.oneRepMax(80, 8, 2), 1)} kg max`], ['Formula', 'Epley, counting reps in reserve'], ['Most accurate from', 'Sets of 3-10 reps']],
-    'heart-rate-zones': [['Age 25, resting 60', `Max ${fmt(c.maxHeartRate(age))} bpm`], ...zones.slice(1, 4).map((z): [string, string] => [`Zone ${z.zone}, ${z.name.toLowerCase()}`, `${z.from}-${z.to} bpm`])],
+    'heart-rate-zones': [['Age 25, resting 60', `Max ${fmt(c.maxHeartRate(age))} bpm`], ...zones.slice(1, 4).map((z): [string, string] => [`Zone ${z.zone}, ${en.zones[z.zone - 1]!.toLowerCase()}`, `${z.from}-${z.to} bpm`])],
     water: [['75 kg', `${fmt(c.waterMl(kg) / 1000, 1)} litres a day`], ['Each hour of exercise', '+0.5-1 litre'], ['Simplest check', 'Pale-yellow urine']],
     'calories-burned': [0, 2, 10, 8].map((i) => [`${ACTIVITIES[i][0]}, 30 min`, `${fmt(c.metKcal(ACTIVITIES[i][1], kg, 30))} kcal`]),
   };

@@ -18,12 +18,13 @@ export type Activity = (typeof ACTIVITY)[number]['id'];
 export const bmi = (kg: number, cm: number) => kg / (cm / 100) ** 2;
 
 /** WHO bands, or the WHO Asia-Pacific ones, which put South Asians' risk at a lower BMI. */
-export function bmiBand(value: number, asian: boolean) {
-  if (value < 18.5) return 'Underweight';
-  if (value < (asian ? 23 : 25)) return 'Healthy';
-  if (value < (asian ? 25 : 30)) return 'Overweight';
-  return 'Obese';
+export function bmiBand(value: number, asian: boolean): BmiBand {
+  if (value < 18.5) return 'under';
+  if (value < (asian ? 23 : 25)) return 'healthy';
+  if (value < (asian ? 25 : 30)) return 'over';
+  return 'obese';
 }
+export type BmiBand = 'under' | 'healthy' | 'over' | 'obese';
 
 export function healthyWeight(cm: number, asian: boolean): [number, number] {
   const m2 = (cm / 100) ** 2;
@@ -96,16 +97,16 @@ export const loadFor = (e1rm: number, reps: number, rir = 0) => (reps + rir <= 1
 /** Tanaka's estimate, closer than 220 - age across adult ages. */
 export const maxHeartRate = (age: number) => 208 - 0.7 * age;
 
-/** Karvonen zones when resting heart rate is known, else plain percentages of the maximum. */
+/** Zones 1-5 (recovery, endurance, tempo, threshold, max): Karvonen when resting heart rate is known, else plain percentages of the maximum. */
 export function heartRateZones(age: number, resting?: number) {
   const max = maxHeartRate(age);
   const at = (f: number) => Math.round(resting === undefined ? max * f : resting + (max - resting) * f);
   return [
-    { zone: 1, name: 'Recovery', from: at(0.5), to: at(0.6) },
-    { zone: 2, name: 'Endurance', from: at(0.6), to: at(0.7) },
-    { zone: 3, name: 'Tempo', from: at(0.7), to: at(0.8) },
-    { zone: 4, name: 'Threshold', from: at(0.8), to: at(0.9) },
-    { zone: 5, name: 'Max', from: at(0.9), to: Math.round(max) },
+    { zone: 1, from: at(0.5), to: at(0.6) },
+    { zone: 2, from: at(0.6), to: at(0.7) },
+    { zone: 3, from: at(0.7), to: at(0.8) },
+    { zone: 4, from: at(0.8), to: at(0.9) },
+    { zone: 5, from: at(0.9), to: Math.round(max) },
   ];
 }
 

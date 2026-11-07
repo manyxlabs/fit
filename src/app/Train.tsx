@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { alternatives, EXERCISES, exerciseSlug, MUSCLES, type Equipment, type Exercise, type ExerciseId, type Muscle } from '../data/exercises';
 import { ACTIVITIES } from '../data/activities';
-import { POSES } from '../data/poses';
 import { weeklySets, type Day, type Hold, type HoldDay, type LiftDay, type Plan, type RunDay } from '../data/programs';
 import { age, heartRateZones, metKcal } from '../lib/calc';
-import { deloadDue, nextTarget, readiness, strengthTarget, type SetLog } from '../lib/coach';
+import { deloadDue, nextTarget, readiness, strengthTarget, type SetLog, type TargetNote } from '../lib/coach';
+import { rich } from '../i18n/rich';
 import { addDays, db, getSetting, setSetting, today, type Activity_, type Profile, type Settings, type Workout } from './db';
 import { latestWeight, useAsync, useBump } from './hooks';
+import { adviceLang, d, date, dayLabel, fill, h, plural, programName, t } from './i18n';
 import { saveProfile } from './Onboarding';
 import { ProgramPicker } from './ProfileForm';
 import { elapsedMs, holdLabel, holdSteps, IntervalTimer, runSteps, runSummary, totalSeconds, type Step, type TimerState } from './Timer';
@@ -15,8 +16,26 @@ import { Card, clock, fmt } from './ui';
 const isLift = (d: Day): d is LiftDay => 'slots' in d;
 const isRun = (d: Day): d is RunDay => 'set' in d;
 const guide = (id: ExerciseId) => `/exercises/${exerciseSlug(id)}/`;
-const shortDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 const YOGA_MET = ACTIVITIES.find(([n]) => n === 'Yoga')![1];
+
+function noteText(n: TargetNote) {
+  const c = t.train.notes;
+  switch (n.kind) {
+    case 'pickLoad':
+    case 'startLow':
+    case 'harder':
+      return c[n.kind];
+    case 'addLoad':
+      return fill(c.addLoad, { high: n.high, step: n.step });
+    case 'sameLoad':
+    case 'aim':
+      return plural(n.reps, c[n.kind]);
+    case 'workUp':
+      return fill(plural(n.rir, c.workUp), { reps: n.reps });
+    case 'ofMax':
+      return fill(c.ofMax, { percent: n.percent, max: n.max });
+  }
+}
 
 /**
  * The day after the last one trained, so a missed day shifts the plan rather than skipping it.
@@ -129,10 +148,12 @@ export function Train({ profile }: { profile: Profile }) {
 
   return (
     <>
-      <h1 className="page-title">Training</h1>
+      <h1 className="page-title">{t.train.title}</h1>
       {lifting && due && !deloading && (
-        <Card title="Time for an easy week">
-          <p>{due} Do the same exercises and loads with about 40% fewer sets for one week, then progress again.</p>
+        <Card title={t.train.deload.title}>
+          <p>
+            {due.kind === 'weeks' ? plural(due.weeks, t.train.deload.weeks) : fill(plural(due.tracked, t.train.deload.stalled), { stalled: due.stalled })} {t.train.deload.how}
+          </p>
           <button
             type="button"
             className="btn primary"
@@ -141,16 +162,16 @@ export function Train({ profile }: { profile: Profile }) {
               bump();
             }}
           >
-            Start an easy week
+            {t.train.deload.start}
           </button>
         </Card>
       )}
-      <Card title={`Next: ${next.name}`}>
-        {deloading && <p className="hint">Easy week: about 40% fewer sets, same loads.</p>}
+      <Card title={fill(t.train.next, { day: dayLabel(next.name) })}>
+        {deloading && <p className="hint">{t.train.deload.on}</p>}
         {ready.advice.length > 0 && (
-          <ul className={`advice ${ready.level}`}>
+          <ul className={`advice ${ready.level}`} lang={adviceLang}>
             {ready.advice.map((a) => (
-              <li key={a}>{a}</li>
+              <li key={a}>{h.train.advice[a]}</li>
             ))}
           </ul>
         )}
@@ -158,13 +179,13 @@ export function Train({ profile }: { profile: Profile }) {
         {ready.level !== 'rest' && (
           <div className="row">
             <button type="button" className="btn primary" onClick={() => start(next.name)}>
-              Start {ready.level === 'light' ? 'anyway' : isLift(next) ? 'workout' : isRun(next) ? 'run' : 'routine'}
+              {t.train.start[ready.level === 'light' ? 'anyway' : isLift(next) ? 'workout' : isRun(next) ? 'run' : 'routine']}
             </button>
-            <select aria-label="Train a different day" value="" onChange={(e) => e.target.value && start(e.target.value)}>
-              <option value="">Another day…</option>
+            <select aria-label={t.train.otherDay} value="" onChange={(e) => e.target.value && start(e.target.value)}>
+              <option value="">{t.train.anotherDay}</option>
               {program.days.map((d, i) => (
                 <option key={i} value={d.name}>
-                  {d.name}
+                  {dayLabel(d.name)}
                 </option>
               ))}
             </select>
@@ -173,20 +194,20 @@ export function Train({ profile }: { profile: Profile }) {
       </Card>
       <ProgramCard program={program} profile={profile} />
       <Cardio birthYear={profile.birthYear} />
-      <Card title="Recent workouts">
+      <Card title={t.train.recent.title}>
         {data.recent.length ? (
           <ul className="plan">
             {data.recent.slice(0, 10).map((w) => (
               <li key={`${'exercises' in w ? 'w' : 'a'}${w.id}`}>
                 <span>
-                  {w.day} <span className="muted">· {shortDate(w.date)}</span>
+                  {dayLabel(w.day!)} <span className="muted">· {date(w.date, { day: 'numeric', month: 'short' })}</span>
                 </span>
-                <span className="muted num">{'exercises' in w ? `${w.exercises.reduce((s, e) => s + e.sets.length, 0)} sets` : `${fmt(w.minutes)} min`}</span>
+                <span className="muted num">{'exercises' in w ? plural(w.exercises.reduce((s, e) => s + e.sets.length, 0), t.train.recent.sets) : `${fmt(w.minutes)} min`}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="hint">Your finished workouts show here.</p>
+          <p className="hint">{t.train.recent.empty}</p>
         )}
       </Card>
     </>
@@ -207,12 +228,12 @@ function Session(props: { session: Workout; cooldown?: LiftDay['cooldown']; hist
 
   return (
     <>
-      <h1 className="page-title">{w.day}</h1>
+      <h1 className="page-title">{dayLabel(w.day)}</h1>
       {rest !== undefined && left > 0 && (
         <div className="rest glass" role="timer" aria-live="polite">
-          Rest <strong className="num">{clock(left)}</strong>
+          {rich(fill(t.train.session.rest, { time: clock(left) }), { b: (s) => <strong className="num">{s}</strong> })}
           <button type="button" className="btn" onClick={() => setRest(undefined)}>
-            Skip
+            {t.train.session.skip}
           </button>
         </div>
       )}
@@ -222,12 +243,15 @@ function Session(props: { session: Workout; cooldown?: LiftDay['cooldown']; hist
         const rir = (e.rir ?? (ex.compound ? 2 : 1)) + props.extraRir;
         const target = e.rir === undefined ? nextTarget(e.exercise, e.range, sessions.at(-1) ?? [], props.setup) : strengthTarget(e.exercise, e.range[0], rir, sessions);
         const hold = ex.kind === 'hold';
+        const c = t.train.session;
+        const reps = plural(target.reps, hold ? c.seconds : c.reps);
+        const amount = target.kg === undefined ? reps : fill(c.load, { kg: fmt(target.kg, 1), reps });
+        const sets = plural(e.planned, c.sets);
         return (
-          <Card key={i} title={ex.name} action={<a href={guide(e.exercise)}>How to</a>}>
-            <p className="hint">{ex.cue}</p>
+          <Card key={i} title={ex.name} action={<a href={guide(e.exercise)}>{c.howTo}</a>}>
+            <p className="hint">{d.exerciseCues[e.exercise]}</p>
             <p>
-              Target: {target.kg !== undefined && `${fmt(target.kg, 1)} kg × `}
-              {target.reps} {hold ? 'seconds' : 'reps'}, {e.planned} sets{!hold && `, ${rir} ${rir === 1 ? 'rep' : 'reps'} in reserve`}. <span className="muted">{target.note}</span>
+              {hold ? fill(c.targetHold, { amount, sets }) : fill(c.target, { amount, sets, rir: plural(rir, c.rir) })} <span className="muted">{noteText(target.note)}</span>
             </p>
             <SetLogger
               key={e.exercise}
@@ -247,10 +271,10 @@ function Session(props: { session: Workout; cooldown?: LiftDay['cooldown']; hist
       {props.cooldown && <Cooldown holds={props.cooldown} />}
       <div className="row sticky-actions">
         <button type="button" className="btn primary" onClick={() => props.onEnd(true)} disabled={!w.exercises.some((e) => e.sets.length)}>
-          Finish workout
+          {t.train.session.finish}
         </button>
-        <button type="button" className="btn" onClick={() => confirm('Discard this workout?') && props.onEnd(false)}>
-          Discard
+        <button type="button" className="btn" onClick={() => confirm(t.train.session.discardConfirm) && props.onEnd(false)}>
+          {t.train.session.discard}
         </button>
       </div>
     </>
@@ -260,6 +284,7 @@ function Session(props: { session: Workout; cooldown?: LiftDay['cooldown']; hist
 function SetLogger(props: { hold: boolean; sets: SetLog[]; planned: number; defaults: SetLog; onLog: (sets: SetLog[]) => void }) {
   const [draft, setDraft] = useState<SetLog>(props.sets.at(-1) ?? props.defaults);
   const rows = Math.max(props.planned, props.sets.length + 1);
+  const c = t.train.sets;
   return (
     <ol className="sets">
       {Array.from({ length: rows }, (_, n) => {
@@ -267,11 +292,8 @@ function SetLogger(props: { hold: boolean; sets: SetLog[]; planned: number; defa
         if (done)
           return (
             <li key={n} className="done">
-              <span className="num">
-                {n + 1}. {fmt(done.kg, 1)} kg × {done.reps}
-                {props.hold ? ' s' : ''}, {done.rir} in reserve
-              </span>
-              <button type="button" className="icon-btn" aria-label={`Remove set ${n + 1}`} onClick={() => props.onLog(props.sets.filter((_, j) => j !== n))}>
+              <span className="num">{fill(props.hold ? c.loggedHold : c.logged, { n: n + 1, kg: fmt(done.kg, 1), reps: done.reps, rir: done.rir })}</span>
+              <button type="button" className="icon-btn" aria-label={fill(c.remove, { n: n + 1 })} onClick={() => props.onLog(props.sets.filter((_, j) => j !== n))}>
                 ×
               </button>
             </li>
@@ -289,16 +311,16 @@ function SetLogger(props: { hold: boolean; sets: SetLog[]; planned: number; defa
               <span className="num">{n + 1}.</span>
               <input aria-label="kg" type="number" inputMode="decimal" min={0} max={500} step="0.25" value={draft.kg} onChange={(e) => setDraft({ ...draft, kg: e.target.valueAsNumber || 0 })} />
               <span>kg ×</span>
-              <input aria-label={props.hold ? 'Seconds' : 'Reps'} type="number" inputMode="numeric" min={1} max={props.hold ? 600 : 100} value={draft.reps} onChange={(e) => setDraft({ ...draft, reps: e.target.valueAsNumber || 0 })} required />
-              <select aria-label="Reps in reserve" value={draft.rir} onChange={(e) => setDraft({ ...draft, rir: Number(e.target.value) })}>
+              <input aria-label={props.hold ? c.seconds : c.reps} type="number" inputMode="numeric" min={1} max={props.hold ? 600 : 100} value={draft.reps} onChange={(e) => setDraft({ ...draft, reps: e.target.valueAsNumber || 0 })} required />
+              <select aria-label={c.rir} value={draft.rir} onChange={(e) => setDraft({ ...draft, rir: Number(e.target.value) })}>
                 {[0, 1, 2, 3, 4].map((r) => (
                   <option key={r} value={r}>
-                    {r} RIR
+                    {fill(c.rirOption, { n: r })}
                   </option>
                 ))}
               </select>
               <button type="submit" className="btn primary" disabled={!(draft.reps > 0)}>
-                Log
+                {c.log}
               </button>
             </form>
           </li>
@@ -324,7 +346,7 @@ function DayPlan({ day }: { day: Day }) {
           ))
         : day.holds.map((h, j) => (
             <li key={j}>
-              <span>{POSES[h[0]].name}</span>
+              <span>{d.poses[h[0]].name}</span>
               <span className="muted num">{holdLabel(h)}</span>
             </li>
           ))}
@@ -342,21 +364,21 @@ function ProgramCard({ program, profile }: { program: Plan; profile: Profile }) 
     bump();
   }
   return (
-    <Card title={`Your program: ${program.name}`}>
+    <Card title={fill(t.train.program.title, { name: programName(program) })}>
       <ProgramPicker setup={profile.setup} days={profile.days} value={profile.program} onChange={(id) => saveProfile({ ...profile, program: id }).then(bump)} />
       <details>
-        <summary>{days.length ? 'Days and exercises' : 'Weeks and sessions'}</summary>
-        {program.days.map((d, i) => (
+        <summary>{days.length ? t.train.program.days : t.train.program.weeks}</summary>
+        {program.days.map((day, i) => (
           <div key={i} className="prog-day">
-            <h3>{d.name}</h3>
-            {isLift(d) ? (
+            <h3>{dayLabel(day.name)}</h3>
+            {isLift(day) ? (
               <ul className="plan">
-                {d.slots.map(([id, n, lo, hi], j) => {
+                {day.slots.map(([id, n, lo, hi], j) => {
                   const alts = alternatives(id, profile.setup, !!profile.bar);
                   return (
                     <li key={j}>
                       {alts.length ? (
-                        <select aria-label={`Swap ${EXERCISES[id].name}`} value={id} onChange={(e) => swap(i, j, e.target.value as ExerciseId)}>
+                        <select aria-label={fill(t.train.program.swap, { exercise: EXERCISES[id].name })} value={id} onChange={(e) => swap(i, j, e.target.value as ExerciseId)}>
                           {[id, ...alts].map((a) => (
                             <option key={a} value={a}>
                               {EXERCISES[a].name}
@@ -374,19 +396,19 @@ function ProgramCard({ program, profile }: { program: Plan; profile: Profile }) 
                 })}
               </ul>
             ) : (
-              <DayPlan day={d} />
+              <DayPlan day={day} />
             )}
           </div>
         ))}
       </details>
       {days.length > 0 && (
         <details>
-          <summary>Hard sets a week per muscle</summary>
-          <p className="hint">Beginners grow on about 6-10 a muscle, intermediates on 10-16. Assisting muscles count half.</p>
+          <summary>{t.train.program.perMuscle}</summary>
+          <p className="hint">{t.train.program.perMuscleHint}</p>
           <ul className="plan">
             {(Object.keys(MUSCLES) as Muscle[]).map((m) => (
               <li key={m}>
-                <span>{MUSCLES[m]}</span>
+                <span>{d.muscles[m]}</span>
                 <span className="num">{fmt(sets[m] ?? 0, 1)}</span>
               </li>
             ))}
@@ -402,14 +424,14 @@ function Cooldown({ holds }: { holds: Hold[] }) {
   const steps = holdSteps(holds);
   const [timer, setTimer] = useState<TimerState>();
   return (
-    <Card title="Mobility cool-down">
+    <Card title={t.train.cooldown.title}>
       {timer ? (
         <IntervalTimer steps={steps} timer={timer} onTimer={setTimer} />
       ) : (
         <>
           <DayPlan day={{ name: '', holds }} />
           <button type="button" className="btn" onClick={() => setTimer({ started: Date.now(), paused: 0 })}>
-            Start the cool-down, {Math.round(totalSeconds(steps) / 60)} min
+            {fill(t.train.cooldown.start, { min: Math.round(totalSeconds(steps) / 60) })}
           </button>
         </>
       )}
@@ -426,8 +448,8 @@ function TimedSession(props: { day: RunDay | HoldDay; timer: TimerState; onTimer
   const done = ending || elapsedMs(timer, Date.now()) >= total * 1000;
   return (
     <>
-      <h1 className="page-title">{day.name}</h1>
-      <Card title={isRun(day) ? 'Run' : 'Routine'}>
+      <h1 className="page-title">{dayLabel(day.name)}</h1>
+      <Card title={isRun(day) ? t.train.timed.run : t.train.timed.routine}>
         <IntervalTimer steps={steps} timer={timer} onTimer={props.onTimer} onDone={() => setEnding(true)} />
       </Card>
       {done ? (
@@ -442,10 +464,10 @@ function TimedSession(props: { day: RunDay | HoldDay; timer: TimerState; onTimer
               setEnding(true);
             }}
           >
-            Finish early
+            {t.train.timed.finishEarly}
           </button>
-          <button type="button" className="btn" onClick={() => confirm('Discard this session?') && props.onEnd()}>
-            Discard
+          <button type="button" className="btn" onClick={() => confirm(t.train.timed.discardConfirm) && props.onEnd()}>
+            {t.train.timed.discard}
           </button>
         </div>
       )}
@@ -461,7 +483,7 @@ function LogSession(props: { run: boolean; day: string; steps: Step[]; seconds: 
   // A run's calories weigh each step's effort by its share of the planned time.
   const met = props.run ? props.steps.reduce((s, x) => s + x.met! * x.seconds, 0) / totalSeconds(props.steps) : YOGA_MET;
   return (
-    <Card title="Log it">
+    <Card title={t.train.log.title}>
       <form
         className="stack"
         onSubmit={async (e) => {
@@ -473,22 +495,22 @@ function LogSession(props: { run: boolean; day: string; steps: Step[]; seconds: 
         <div className="grid three">
           {props.run && (
             <label className="field">
-              Distance (km)
+              {t.train.log.distance}
               <input type="number" inputMode="decimal" min={0.1} max={100} step="0.01" value={km ?? ''} onChange={(e) => setKm(e.target.valueAsNumber || undefined)} />
             </label>
           )}
           <label className="field">
-            Minutes
+            {t.train.log.minutes}
             <input type="number" inputMode="numeric" min={0} max={600} value={Number.isNaN(mins) ? '' : mins} onChange={(e) => setMins(e.target.valueAsNumber)} required />
           </label>
           <label className="field">
-            Seconds
+            {t.train.log.seconds}
             <input type="number" inputMode="numeric" min={0} max={59} value={Number.isNaN(secs) ? '' : secs} onChange={(e) => setSecs(e.target.valueAsNumber)} required />
           </label>
         </div>
-        {km && time > 0 && <p>Pace {clock(Math.round(time / km))} per km</p>}
+        {km && time > 0 && <p>{fill(t.train.log.pace, { pace: clock(Math.round(time / km)) })}</p>}
         <button type="submit" className="btn primary" disabled={time <= 0}>
-          Save {props.run ? 'run' : 'session'}
+          {props.run ? t.train.log.saveRun : t.train.log.saveSession}
         </button>
       </form>
     </Card>
@@ -507,22 +529,28 @@ function Cardio({ birthYear }: { birthYear: number }) {
   const [mins, setMins] = useState(30);
   if (!data) return null;
   const kg = data.w?.kg ?? 70;
+  const c = t.train.cardio;
+  const zone = { from: data.zone2.from, to: data.zone2.to };
   return (
-    <Card title="Cardio and sport today">
-      <p className="hint">2-3 easy sessions of 20-40 minutes a week help the heart and recovery. Keep them away from heavy leg days.</p>
+    <Card title={c.title}>
+      <p className="hint" lang={adviceLang}>
+        {h.train.cardio.howMuch}
+      </p>
       <p>
-        Easy pace (zone 2):{' '}
-        <strong className="num">
-          {data.zone2.from}-{data.zone2.to} bpm
-        </strong>
-        <span className="muted">{data.resting ? `, from your resting heart rate of ${data.resting}` : ', from your age; import a resting heart rate in More to fit it to you'}.</span>
+        {rich(data.resting ? fill(c.zone2, { ...zone, hr: data.resting }) : fill(c.zone2Age, { ...zone, more: t.shell.tabs.more }), {
+          b: (s) => <strong className="num">{s}</strong>,
+          m: (s) => <span className="muted">{s}</span>,
+        })}
       </p>
       {data.list.length > 0 && (
         <ul className="plan">
           {data.list.map((a) => (
             <li key={a.id}>
               <span>
-                {a.name}, {fmt(a.minutes)} min{a.km && `, ${fmt(a.km, 2)} km at ${clock(Math.round((a.minutes * 60) / a.km))} per km`}
+                {(() => {
+                  const name = d.activities[a.name] ?? dayLabel(a.name);
+                  return a.km ? fill(c.activityKm, { name, min: fmt(a.minutes), km: fmt(a.km, 2), pace: clock(Math.round((a.minutes * 60) / a.km)) }) : fill(c.activity, { name, min: fmt(a.minutes) });
+                })()}
               </span>
               <span className="num muted">{fmt(metKcal(a.met, kg, a.minutes))} kcal</span>
             </li>
@@ -538,20 +566,22 @@ function Cardio({ birthYear }: { birthYear: number }) {
           bump();
         }}
       >
-        <select aria-label="Activity" value={pick} onChange={(e) => setPick(Number(e.target.value))}>
+        <select aria-label={c.activityLabel} value={pick} onChange={(e) => setPick(Number(e.target.value))}>
           {ACTIVITIES.map(([n], i) => (
             <option key={n} value={i}>
-              {n}
+              {d.activities[n]}
             </option>
           ))}
         </select>
-        <input aria-label="Minutes" type="number" inputMode="numeric" min={1} max={600} value={mins || ''} onChange={(e) => setMins(e.target.valueAsNumber)} required className="mins" />
+        <input aria-label={c.minutes} type="number" inputMode="numeric" min={1} max={600} value={mins || ''} onChange={(e) => setMins(e.target.valueAsNumber)} required className="mins" />
         <span>min</span>
         <button type="submit" className="btn">
-          Add
+          {c.add}
         </button>
       </form>
-      <p className="hint">Calories here are estimates for reference; your target already counts your usual activity, so do not eat them back by default.</p>
+      <p className="hint" lang={adviceLang}>
+        {h.train.cardio.eatBack}
+      </p>
     </Card>
   );
 }

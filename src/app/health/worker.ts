@@ -1,9 +1,9 @@
 /// <reference lib="webworker" />
 import { apple, Collector, googleFit, samsung } from './parse';
-import { counted, entries, open } from './zip';
+import { counted, entries, open, Unreadable } from './zip';
 
 export type Request = File[];
-export type Reply = { progress: number } | { result: ReturnType<Collector['result']> } | { error: string };
+export type Reply = { progress: number } | { result: ReturnType<Collector['result']> } | { error: Unreadable['code'] | 'unreadable'; file: string };
 
 const post = (r: Reply) => postMessage(r);
 const SAMSUNG = /com\.samsung\.[\w.]+\.\d+\.csv$/;
@@ -34,9 +34,10 @@ onmessage = async ({ data: files }: MessageEvent<Request>) => {
     }
     const fromSamsung = samsung(csvs, c);
     const fromFit = csvs.filter((x) => !SAMSUNG.test(x.name)).map((x) => googleFit(x.text, c));
-    if (!xml && !fromSamsung && !fromFit.includes(true)) throw new Error('No health data found. Choose Apple Health’s export.zip, Samsung Health’s CSV files or Google Fit’s Takeout.');
+    if (!xml && !fromSamsung && !fromFit.includes(true)) throw new Unreadable('noData');
     post({ result: c.result() });
   } catch (e) {
-    post({ error: e instanceof Error ? e.message : String(e) });
+    console.error(e);
+    post(e instanceof Unreadable ? { error: e.code, file: e.file } : { error: 'unreadable', file: '' });
   }
 };

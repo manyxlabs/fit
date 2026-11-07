@@ -1,13 +1,16 @@
 import { useState, type SubmitEvent } from 'react';
 import { FOODS, fits, search, type Food as DbFood } from '../data/foods';
 import { MEALS, type Meal } from '../data/meals';
+import { rich } from '../i18n/rich';
 import { vratDay } from '../lib/fasting';
 import { addDays, db, foodRef, today, type CustomFood, type FoodRef, type Profile } from './db';
 import { kcalOf, targets, totals, useAsync, useBump } from './hooks';
+import { d as labels, fill, t as copy } from './i18n';
 import { Plan } from './Plan';
 import { Bar, Card, DateNav, fmt } from './ui';
 
-const RAMADAN_MEALS: Record<Meal, string> = { ...MEALS, breakfast: 'Suhoor', snacks: 'Iftar' };
+const c = copy.food;
+const RAMADAN_MEALS: Record<Meal, string> = { ...labels.meals, ...c.ramadanMeals };
 
 type Pickable = FoodRef & { units: [string, number][]; aliases?: string[]; vrat?: boolean };
 const GRAMS: [string, number] = ['grams', 1];
@@ -32,7 +35,7 @@ export function Food({ profile }: { profile: Profile }) {
   const sum = totals(entries);
   const vrat = vratDay(profile.fasting, day);
   const ramadan = profile.fasting?.mode === 'ramadan';
-  const names = ramadan ? RAMADAN_MEALS : MEALS;
+  const names = ramadan ? RAMADAN_MEALS : labels.meals;
 
   async function copyYesterday() {
     const d = await db;
@@ -44,14 +47,14 @@ export function Food({ profile }: { profile: Profile }) {
   return (
     <>
       <DateNav date={date} onChange={setDate} max={today()} />
-      <Card title="Totals">
-        <Bar label="Calories" value={sum.kcal} target={t.kcal} unit="kcal" />
-        <Bar label="Protein" value={sum.protein} target={t.protein} unit="g" />
-        <Bar label="Carbs" value={sum.carbs} target={t.carbs} unit="g" />
-        <Bar label="Fat" value={sum.fat} target={t.fat} unit="g" />
+      <Card title={c.totals}>
+        <Bar label={c.macros.kcal} value={sum.kcal} target={t.kcal} unit="kcal" />
+        <Bar label={c.macros.protein} value={sum.protein} target={t.protein} unit="g" />
+        <Bar label={c.macros.carbs} value={sum.carbs} target={t.carbs} unit="g" />
+        <Bar label={c.macros.fat} value={sum.fat} target={t.fat} unit="g" />
         {!entries.length && (
           <button type="button" className="btn" onClick={copyYesterday}>
-            Copy the previous day's food
+            {c.copyYesterday}
           </button>
         )}
       </Card>
@@ -68,15 +71,13 @@ export function Food({ profile }: { profile: Profile }) {
                   <li key={e.id}>
                     <div>
                       <strong>{e.food.name}</strong>
-                      <span className="muted">
-                        {fmt(e.grams)} g · {fmt((e.food.protein * e.grams) / 100, 1)} g protein
-                      </span>
+                      <span className="muted">{fill(c.entry, { g: fmt(e.grams), protein: fmt((e.food.protein * e.grams) / 100, 1) })}</span>
                     </div>
                     <span className="num">{fmt(kcalOf(e))}</span>
                     <button
                       type="button"
                       className="icon-btn"
-                      aria-label={`Remove ${e.food.name}`}
+                      aria-label={fill(c.remove, { name: e.food.name })}
                       onClick={async () => {
                         await (await db).delete('food', e.id!);
                         bump();
@@ -103,7 +104,7 @@ export function Food({ profile }: { profile: Profile }) {
               />
             ) : (
               <button type="button" className="btn" onClick={() => setAdding(meal)}>
-                + Add food
+                {c.addFood}
               </button>
             )}
           </Card>
@@ -131,28 +132,26 @@ function Picker(props: { profile: Profile; vrat: boolean; custom: CustomFood[]; 
   if (chosen) return <Amount food={chosen} onBack={() => setChosen(undefined)} onAdd={(g) => props.onPick(foodRef(chosen), g)} />;
   return (
     <div className="picker">
-      {props.vrat && <p className="hint">Vrat: showing vrat foods only.</p>}
-      <input type="search" className="search" placeholder="Search: roti, dal, paneer, egg, chicken…" value={query} onChange={(e) => setQuery(e.target.value)} autoFocus aria-label="Search foods" />
-      {!query && recent.length > 0 && <p className="hint">Recent</p>}
+      {props.vrat && <p className="hint">{c.picker.vrat}</p>}
+      <input type="search" className="search" placeholder={c.picker.search} value={query} onChange={(e) => setQuery(e.target.value)} autoFocus aria-label={c.picker.searchLabel} />
+      {!query && recent.length > 0 && <p className="hint">{c.picker.recent}</p>}
       <ul className="results">
         {shown.map((f) => (
           <li key={f.name}>
             <button type="button" onClick={() => setChosen(f)}>
               <span>{f.name}</span>
-              <span className="muted num">
-                {fmt(f.kcal)} kcal · {fmt(f.protein, 1)} g protein / 100 g
-              </span>
+              <span className="muted num">{fill(c.picker.per100, { kcal: fmt(f.kcal), protein: fmt(f.protein, 1) })}</span>
             </button>
           </li>
         ))}
       </ul>
-      {query && !shown.length && <p className="hint">No match. Add it as your own food below.</p>}
+      {query && !shown.length && <p className="hint">{c.picker.noMatch}</p>}
       <div className="row">
         <button type="button" className="btn" onClick={() => setCreating(true)}>
-          Add your own food
+          {c.picker.addOwn}
         </button>
         <button type="button" className="btn" onClick={props.onClose}>
-          Cancel
+          {c.picker.cancel}
         </button>
       </div>
     </div>
@@ -178,11 +177,11 @@ function Amount(props: { food: Pickable; onBack: () => void; onAdd: (grams: numb
       </p>
       <div className="grid two">
         <label className="field">
-          Amount
+          {c.amount.amount}
           <input type="number" inputMode="decimal" min={0.25} max={5000} step="any" value={qty || ''} onChange={(e) => setQty(e.target.valueAsNumber)} required autoFocus />
         </label>
         <label className="field">
-          Unit
+          {c.amount.unit}
           <select
             value={unit}
             onChange={(e) => {
@@ -191,24 +190,32 @@ function Amount(props: { food: Pickable; onBack: () => void; onAdd: (grams: numb
               setQty(units[u] === GRAMS ? 100 : 1);
             }}
           >
-            {units.map(([label, g], i) => (
-              <option key={label} value={i}>
-                {label}
-                {label !== 'grams' && ` (${g} g)`}
+            {units.map((u, i) => (
+              <option key={u[0]} value={i}>
+                {u === GRAMS ? c.amount.grams : fill(c.amount.unitGrams, { unit: u[0], g: u[1] })}
               </option>
             ))}
           </select>
         </label>
       </div>
       <p className="num">
-        {fmt(grams)} g: <strong>{fmt((f.kcal * grams) / 100)} kcal</strong>, {fmt((f.protein * grams) / 100, 1)} g protein, {fmt((f.carbs * grams) / 100, 1)} g carbs, {fmt((f.fat * grams) / 100, 1)} g fat
+        {rich(
+          fill(c.amount.summary, {
+            g: fmt(grams),
+            kcal: fmt((f.kcal * grams) / 100),
+            protein: fmt((f.protein * grams) / 100, 1),
+            carbs: fmt((f.carbs * grams) / 100, 1),
+            fat: fmt((f.fat * grams) / 100, 1),
+          }),
+          { b: (x) => <strong>{x}</strong> },
+        )}
       </p>
       <div className="row">
         <button type="submit" className="btn primary" disabled={!(grams > 0)}>
-          Add
+          {c.amount.add}
         </button>
         <button type="button" className="btn" onClick={props.onBack}>
-          Back
+          {c.amount.back}
         </button>
       </div>
     </form>
@@ -237,40 +244,39 @@ function CustomFoodForm(props: { diet: Profile['diet']; vrat: boolean; onDone: (
   }
   return (
     <form className="picker" onSubmit={save}>
-      <p>
-        <strong>Your own food</strong>, as one serving from its label or recipe
-      </p>
+      <p>{rich(c.custom.heading, { b: (x) => <strong>{x}</strong> })}</p>
       <label className="field">
-        Name
+        {c.custom.name}
         <input name="name" required maxLength={80} autoFocus />
       </label>
       <div className="grid">
-        <Num name="grams" label="Serving (g)" min={1} required />
+        <Num name="grams" label={c.custom.serving} min={1} required />
         <Num name="kcal" label="kcal" required />
-        <Num name="protein" label="Protein (g)" />
-        <Num name="carbs" label="Carbs (g)" />
-        <Num name="fat" label="Fat (g)" />
-        <Num name="fibre" label="Fibre (g)" />
+        <Num name="protein" label={c.custom.protein} />
+        <Num name="carbs" label={c.custom.carbs} />
+        <Num name="fat" label={c.custom.fat} />
+        <Num name="fibre" label={c.custom.fibre} />
       </div>
       <label className="field">
-        Type
+        {c.custom.type}
         <select name="diet" defaultValue={props.diet === 'vegan' ? 'vegan' : 'veg'}>
-          <option value="vegan">Vegan</option>
-          <option value="veg">Vegetarian</option>
-          <option value="egg">Contains egg</option>
-          <option value="nonveg">Meat or fish</option>
+          {(['vegan', 'veg', 'egg', 'nonveg'] as const).map((k) => (
+            <option key={k} value={k}>
+              {c.custom.diet[k]}
+            </option>
+          ))}
         </select>
       </label>
       <label className="check">
         <input name="vrat" type="checkbox" defaultChecked={props.vrat} />
-        Fine to eat on a vrat day
+        {c.custom.vrat}
       </label>
       <div className="row">
         <button type="submit" className="btn primary">
-          Save food
+          {c.custom.save}
         </button>
         <button type="button" className="btn" onClick={() => props.onDone()}>
-          Cancel
+          {c.custom.cancel}
         </button>
       </div>
     </form>

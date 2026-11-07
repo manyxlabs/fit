@@ -20,10 +20,23 @@ The user-facing version is [the privacy page](src/pages/privacy.astro).
 
 ## Layout
 
-- `src/pages/`: the static site (home, calculators, guides, privacy), built with Astro.
+- `src/pages/[...lang]/`: the static site (home, calculators, guides, exercises, privacy) in every language, built with Astro; `src/i18n/` holds the copy.
 - `src/app/`: the app at `/app/`, one React island; `sync.ts` is the sync engine and `Pairing.tsx` and `Reminders.tsx` its settings in More.
 - `worker/`: the Cloudflare Worker that serves the site and `/api/sync/<room>` (`sync.ts`) and `/api/push` (`push.ts`, `webpush.ts`).
 - `public/sw.js`: the service worker, which also shows reminders and opens the right tab on click.
+
+## Languages
+
+Fit is published in English, Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada and Malayalam.
+English keeps the unprefixed URLs; every other language mirrors the public pages under `/hi/`, `/bn/` and so on, with `hreflang` alternates and its pages in the sitemap.
+The app at `/app/` switches language in the browser and remembers it.
+All copy lives in typed catalogues under `src/i18n/<language>/`, guides under `src/guides/<language>/`, and food names people type in each script under `data/aliases/`.
+A missing key, placeholder or tag in any language fails the build.
+
+Health advice (the guides, exercise how-tos, readiness, fasting and target warnings, supplement advice and the calculators' explanations) goes live in a language only after a native speaker has checked it.
+Until then that language shows those parts in English and publishes no guide or exercise pages of its own.
+Each language's review list is kept with the project's working notes, outside git, in `.handoff/fit-i18n-review-<language>.md`.
+Once a language is checked, set it to `true` in `src/i18n/review.ts`; nothing else needs to change.
 
 ## Local development
 

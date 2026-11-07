@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { MEALS, type Meal } from '../data/meals';
+import type { Locale } from '../i18n/locales';
 import { WATER_EVERY, type Kind, type Schedule, type Time } from '../lib/reminders';
 import { unb64 } from '../../worker/b64';
-import { Card } from './ui';
+import { rich } from '../i18n/rich';
+import { d, date, fill, lang, t } from './i18n';
+import { Card, fmt } from './ui';
 
 // Kept per browser in localStorage, not in the synced database: a push subscription belongs to one browser.
 type Times = { weighIn: Time; meals: Record<Meal, Time>; water: NonNullable<Schedule['water']>; workout: NonNullable<Schedule['workout']>; bedtime: Time };
-type Saved = { times: Times; picked: Kind[]; active: boolean; endpoint?: string; tz?: string };
+type Saved = { times: Times; picked: Kind[]; active: boolean; endpoint?: string; tz?: string; lang?: Locale };
 
 const KEY = 'fit:reminders';
 const DEFAULTS: Saved = {
@@ -20,7 +23,9 @@ const DEFAULTS: Saved = {
   picked: ['weighIn', 'breakfast', 'lunch', 'dinner', 'workout'],
   active: false,
 };
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const c = t.more.reminders;
+/** Short weekday names, Sunday first, from a week that began on a Sunday. */
+const DAYS = Array.from({ length: 7 }, (_, i) => date(new Date(2023, 0, 1 + i, 12), { weekday: 'short' }));
 
 function load(): Saved {
   try {
@@ -54,26 +59,26 @@ const supported = () => typeof window !== 'undefined' && 'serviceWorker' in navi
 const zone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 async function subscribe(s: Saved): Promise<Saved> {
-  if ((await Notification.requestPermission()) !== 'granted') throw new Error("Notifications are blocked for this site. Allow them in your browser's site settings, then try again.");
+  if ((await Notification.requestPermission()) !== 'granted') throw new Error(c.blocked);
   const reg = await navigator.serviceWorker.ready;
   let sub = await reg.pushManager.getSubscription();
   if (!sub) {
     const key = await fetch('/api/push').then((r) => (r.ok ? (r.json() as Promise<{ publicKey: string }>) : null));
-    if (!key) throw new Error('Reminders are not available right now. Try again later.');
+    if (!key) throw new Error(c.unavailable);
     sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: unb64(key.publicKey) });
   }
   const tz = zone();
-  const res = await fetch('/api/push', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: sub.toJSON(), tz, schedule: schedule(s) }) });
-  if (!res.ok) throw new Error('Could not save your reminders. Try again.');
-  return { ...s, active: true, endpoint: sub.endpoint, tz };
+  const res = await fetch('/api/push', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: sub.toJSON(), tz, lang, schedule: schedule(s) }) });
+  if (!res.ok) throw new Error(c.saveFailed);
+  return { ...s, active: true, endpoint: sub.endpoint, tz, lang };
 }
 
-/** On startup: a browser can replace its subscription, and a person can travel, so the server is told of either. */
+/** On startup: a browser can replace its subscription, a person can travel and the app's language can change, so the server is told of any. */
 export async function refreshReminders() {
   const s = load();
   if (!s.active || !supported() || Notification.permission !== 'granted') return;
   const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
-  if (sub?.endpoint !== s.endpoint || s.tz !== zone()) keep(await subscribe(s));
+  if (sub?.endpoint !== s.endpoint || s.tz !== zone() || s.lang !== lang) keep(await subscribe(s));
 }
 
 export function RemindersCard() {
@@ -102,7 +107,7 @@ export function RemindersCard() {
     const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
     if (sub) {
       const res = await fetch('/api/push', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint }) });
-      if (!res.ok) throw new Error('Could not turn off reminders. Try again.');
+      if (!res.ok) throw new Error(c.turnOffFailed);
       await sub.unsubscribe();
     }
     return { ...s, active: false, endpoint: undefined };
@@ -121,46 +126,45 @@ export function RemindersCard() {
   const nothing = !Object.keys(schedule(s)).length;
 
   return (
-    <Card title="Reminders">
-      <p className="hint">
-        Notifications at the times you choose. The server keeps only this browser's push address, your timezone and these times, never anything you log, and the reminders say no
-        more than "Time to log lunch".
-      </p>
-      <p className="hint">On iPhone and iPad, reminders need iOS 16.4 or later and Fit on your Home Screen: tap Share, then Add to Home Screen, and open Fit from there.</p>
+    <Card title={c.title}>
+      <p className="hint">{c.about}</p>
+      <p className="hint">{c.ios}</p>
       {supported() ? (
         <>
           <ul className="plan reminders">
             <li>
-              {check('weighIn', 'Morning weigh-in')}
-              <span className="row">{clock('Weigh-in time', s.times.weighIn, (weighIn) => times({ weighIn }), off('weighIn'))}</span>
+              {check('weighIn', c.weighIn)}
+              <span className="row">{clock(c.weighInTime, s.times.weighIn, (weighIn) => times({ weighIn }), off('weighIn'))}</span>
             </li>
             {(Object.keys(MEALS) as Meal[]).map((m) => (
               <li key={m}>
-                {check(m, `Log ${MEALS[m].toLowerCase()}`)}
-                <span className="row">{clock(`${MEALS[m]} time`, s.times.meals[m], (t) => times({ meals: { ...s.times.meals, [m]: t } }), off(m))}</span>
+                {check(m, c.logMeal[m])}
+                <span className="row">{clock(fill(c.mealTime, { meal: d.meals[m] }), s.times.meals[m], (t) => times({ meals: { ...s.times.meals, [m]: t } }), off(m))}</span>
               </li>
             ))}
             <li>
-              {check('water', 'Water')}
+              {check('water', c.water)}
               <span className="row">
-                <select aria-label="Water every" value={s.times.water.every} disabled={off('water')} onChange={(e) => times({ water: { ...s.times.water, every: Number(e.target.value) } })}>
+                <select aria-label={c.waterEvery} value={s.times.water.every} disabled={off('water')} onChange={(e) => times({ water: { ...s.times.water, every: Number(e.target.value) } })}>
                   {WATER_EVERY.map((m) => (
                     <option key={m} value={m}>
-                      every {m / 60} h
+                      {fill(c.everyHours, { hours: fmt(m / 60, m % 60 && 1) })}
                     </option>
                   ))}
                 </select>
               </span>
               <span className="row hours">
-                {clock('Water from', s.times.water.from, (from) => times({ water: { ...s.times.water, from } }), off('water'))}
-                <span className="muted">to</span>
-                {clock('Water until', s.times.water.to, (to) => times({ water: { ...s.times.water, to } }), off('water'))}
+                {rich(c.waterHours, {
+                  from: () => clock(c.waterFrom, s.times.water.from, (from) => times({ water: { ...s.times.water, from } }), off('water')),
+                  to: (words) => <span className="muted">{words}</span>,
+                  until: () => clock(c.waterUntil, s.times.water.to, (to) => times({ water: { ...s.times.water, to } }), off('water')),
+                })}
               </span>
             </li>
             <li>
-              {check('workout', 'Workout days')}
-              <span className="row">{clock('Workout time', s.times.workout.time, (time) => times({ workout: { ...s.times.workout, time } }), off('workout'))}</span>
-              <fieldset className="seg days" aria-label="Workout days" disabled={off('workout')}>
+              {check('workout', c.workoutDays)}
+              <span className="row">{clock(c.workoutTime, s.times.workout.time, (time) => times({ workout: { ...s.times.workout, time } }), off('workout'))}</span>
+              <fieldset className="seg days" aria-label={c.workoutDays} disabled={off('workout')}>
                 {[1, 2, 3, 4, 5, 6, 0].map((d) => (
                   <label key={d}>
                     <input
@@ -176,23 +180,23 @@ export function RemindersCard() {
               </fieldset>
             </li>
             <li>
-              {check('bedtime', 'Bedtime')}
-              <span className="row">{clock('Bedtime', s.times.bedtime, (bedtime) => times({ bedtime }), off('bedtime'))}</span>
+              {check('bedtime', c.bedtime)}
+              <span className="row">{clock(c.bedtimeTime, s.times.bedtime, (bedtime) => times({ bedtime }), off('bedtime'))}</span>
             </li>
           </ul>
-          {s.picked.includes('water') && s.times.water.from > s.times.water.to && <p className="error">Water reminders must start before they end.</p>}
+          {s.picked.includes('water') && s.times.water.from > s.times.water.to && <p className="error">{c.waterOrder}</p>}
           <div className="row">
             <button
               type="button"
               className="btn primary"
               disabled={busy || nothing || s.times.water.from > s.times.water.to}
-              onClick={() => act(() => subscribe(s), 'Reminders are on.')}
+              onClick={() => act(() => subscribe(s), c.on)}
             >
-              {s.active ? 'Save reminders' : 'Turn on reminders'}
+              {s.active ? c.save : c.turnOn}
             </button>
             {s.active && (
-              <button type="button" className="btn" disabled={busy} onClick={() => act(stop, 'Reminders are off.')}>
-                Turn off reminders
+              <button type="button" className="btn" disabled={busy} onClick={() => act(stop, c.off)}>
+                {c.turnOff}
               </button>
             )}
           </div>
@@ -203,7 +207,7 @@ export function RemindersCard() {
           )}
         </>
       ) : (
-        <p className="hint">This browser cannot show reminders.</p>
+        <p className="hint">{c.unsupported}</p>
       )}
     </Card>
   );

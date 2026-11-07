@@ -1,8 +1,9 @@
 import { openDB } from 'idb';
 import { useSyncExternalStore } from 'react';
 import { b64, unb64 } from '../../worker/b64';
-import { MAX_BLOB, MAX_REQUEST, newer, type Pulled, type Row } from '../../worker/protocol';
+import { MAX_BLOB, MAX_REQUEST, MAX_ROOM, newer, type Pulled, type Row } from '../../worker/protocol';
 import { db, STORES } from './db';
+import { fill, t } from './i18n';
 
 // End-to-end encrypted sync of every store but photos between one person's devices. The pairing secret is
 // 256 random bits carried only in a link's fragment, which browsers never send to a server, or
@@ -263,16 +264,16 @@ async function cycle() {
       });
       if (res.status === 410) {
         await forget();
-        return set({ problem: 'Sync was turned off on another device. Everything on this device is still here.' });
+        return set({ problem: problems.endedElsewhere });
       }
-      if (!res.ok) throw new Error(PROBLEMS[res.status] ?? 'Sync failed. It will try again in a minute.');
+      if (!res.ok) throw new Error(PROBLEMS[res.status] ?? problems.failed);
       const pulled: Pulled = await res.json();
       await put(out.sent.map((m) => ({ ...m, dirty: 0 })));
       if (await apply(keys, pulled.rows)) onRemote();
       b.cursor = pulled.seq;
       b.last = Date.now();
       await bind(b);
-      if (out.tooLarge) throw new Error('A record is too large to sync.');
+      if (out.tooLarge) throw new Error(problems.recordTooLarge);
       more = pulled.more || out.rest;
     }
     set({ status: 'idle', last: b.last, problem: undefined });
@@ -284,10 +285,11 @@ async function cycle() {
   }
 }
 
+const problems = t.more.sync.problems;
 const PROBLEMS: Record<number, string> = {
-  403: 'This device is not allowed in the sync room. Remove it and pair again.',
-  413: 'Your synced data has reached the 25 MB limit.',
-  429: 'Too many sync requests. It will try again in a minute.',
+  403: problems.notAllowed,
+  413: fill(problems.full, { mb: MAX_ROOM >> 20 }),
+  429: problems.tooMany,
 };
 
 /** Starts syncing, if this device is paired, and keeps at it: on changes, on coming back online and on returning to the app. */
@@ -334,7 +336,7 @@ export async function turnOff() {
     const b = await binding();
     if (!b) return;
     const keys = await derive(b.secret);
-    const offline = 'Could not reach the server. Try again when online.';
+    const offline = problems.unreachable;
     const res = await fetch(`/api/sync/${keys.room}`, { method: 'DELETE', headers: { Authorization: `Bearer ${keys.auth}` } }).catch(() => {
       throw new Error(offline);
     });

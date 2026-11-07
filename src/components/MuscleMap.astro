@@ -1,8 +1,11 @@
 ---
-import { MUSCLES, type Muscle } from '../data/exercises';
+import type { Muscle } from '../data/exercises';
+import { pageLocale } from '../i18n';
+import { fill } from '../i18n/intl';
 
 type Props = { primary: Muscle[]; secondary: Muscle[] };
 const { primary, secondary } = Astro.props;
+const { t, data } = pageLocale(Astro.url);
 
 /**
  * The left half of each figure, centred on x = 60 and mirrored for the right; null is skin and
@@ -48,8 +51,8 @@ const BACK: [Muscle | null, string][] = [
 ];
 
 const role = (m: Muscle | null) => (m && primary.includes(m) ? 'main' : m && secondary.includes(m) ? 'assist' : undefined);
-const names = (ms: Muscle[]) => ms.map((m) => MUSCLES[m]).join(', ');
-const title = `Muscles worked: ${names(primary)}${secondary.length ? `; assisting: ${names(secondary)}` : ''}.`;
+const names = (ms: Muscle[]) => ms.map((m) => data.muscles[m]).join(', ');
+const title = secondary.length ? fill(t.exercises.mapAssist, { main: names(primary), assist: names(secondary) }) : fill(t.exercises.map, { main: names(primary) });
 ---
 
 <figure class="muscle-map">
@@ -66,14 +69,14 @@ const title = `Muscles worked: ${names(primary)}${secondary.length ? `; assistin
               ))}
             </g>
           ))}
-          <text x="60" y="256">{i ? 'Back' : 'Front'}</text>
+          <text x="60" y="256">{i ? t.exercises.back : t.exercises.front}</text>
         </g>
       ))
     }
   </svg>
   <figcaption>
-    <span><i class="main"></i>Main</span>
-    {secondary.length > 0 && <span><i class="assist"></i>Assisting</span>}
+    <span><i class="main"></i>{t.exercises.mainLegend}</span>
+    {secondary.length > 0 && <span><i class="assist"></i>{t.exercises.assistLegend}</span>}
   </figcaption>
 </figure>
 

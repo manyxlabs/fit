@@ -1,6 +1,7 @@
 import { planOf, programFor } from '../data/programs';
 import { db, getSetting, setSetting, today, type Profile } from './db';
 import { useBump } from './hooks';
+import { t } from './i18n';
 import { ProfileForm } from './ProfileForm';
 
 /** Saves a profile, and starts the chosen or matching program when it or where or how often they train changed. */
@@ -16,10 +17,10 @@ export function Onboarding() {
   const bump = useBump();
   return (
     <main className="wrap onboard">
-      <h1>Set up your plan</h1>
-      <p className="hint">Everything stays in this browser. Nothing is sent anywhere, and there is no account.</p>
+      <h1>{t.more.onboarding.title}</h1>
+      <p className="hint">{t.more.onboarding.private}</p>
       <div className="card glass">
-        <ProfileForm askWeight submit="Build my plan" onSave={(p, kg) => saveProfile(p, kg).then(bump)} />
+        <ProfileForm askWeight submit={t.more.onboarding.submit} onSave={(p, kg) => saveProfile(p, kg).then(bump)} />
       </div>
     </main>
   );

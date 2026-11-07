@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { readiness, type Sickness } from '../lib/coach';
-import { recommend, SUPPLEMENTS, type SupplementId } from '../data/supplements';
+import { recommend, type SupplementId } from '../data/supplements';
 import { CITIES, ifName, ramadanTimes, vratDay, windowState } from '../lib/fasting';
 import { addDays, db, getSetting, today, type Day, type Profile } from './db';
 import { targets, totals, useAsync, useBump, useNow, type Targets } from './hooks';
+import { adviceLang, d as labels, date as fmtDate, dayLabel, fill, h, t as copy } from './i18n';
 import { nextDay } from './Train';
 import { Bar, Card, DateNav, fmt } from './ui';
+import { rich } from '../i18n/rich';
+
+const c = copy.today;
+const small = { s: (x: string) => <span>{x}</span> };
+const bold = { b: (x: string) => <strong>{x}</strong> };
 
 export function Today({ profile }: { profile: Profile }) {
   const bump = useBump();
@@ -35,31 +41,33 @@ export function Today({ profile }: { profile: Profile }) {
   return (
     <>
       <DateNav date={date} onChange={setDate} max={today()} />
-      <Card title="Calories" action={<a href="#food">Log food</a>}>
-        <p className="big num">
-          {fmt(Math.abs(left))} <span>kcal {left >= 0 ? 'left' : 'over'}</span>
-        </p>
-        <Bar label="Eaten" value={eaten.kcal} target={t.kcal} unit="kcal" />
-        <Bar label="Protein" value={eaten.protein} target={t.protein} unit="g" />
-        <Bar label="Carbs" value={eaten.carbs} target={t.carbs} unit="g" />
-        <Bar label="Fat" value={eaten.fat} target={t.fat} unit="g" />
-        <Bar label="Fibre" value={eaten.fibre} target={t.fibre} unit="g" />
-        {t.floored && <p className="warn">Your pace would put you below a safe minimum, so the target is held there. Choose a slower pace in More.</p>}
+      <Card title={c.calories.title} action={<a href="#food">{c.calories.logFood}</a>}>
+        <p className="big num">{rich(fill(left >= 0 ? c.calories.left : c.calories.over, { n: fmt(Math.abs(left)) }), small)}</p>
+        <Bar label={c.calories.eaten} value={eaten.kcal} target={t.kcal} unit="kcal" />
+        <Bar label={copy.food.macros.protein} value={eaten.protein} target={t.protein} unit="g" />
+        <Bar label={copy.food.macros.carbs} value={eaten.carbs} target={t.carbs} unit="g" />
+        <Bar label={copy.food.macros.fat} value={eaten.fat} target={t.fat} unit="g" />
+        <Bar label={copy.food.macros.fibre} value={eaten.fibre} target={t.fibre} unit="g" />
+        {t.floored && (
+          <p className="warn" lang={adviceLang}>
+            {h.today.floored}
+          </p>
+        )}
       </Card>
 
       {profile.fasting && <FastingCard profile={profile} t={t} day={day} date={date} patch={patch} />}
 
-      <Card title="How are you today?">
+      <Card title={c.checkIn.title}>
         <div className="grid">
           <label className="field">
-            Sleep last night (h)
+            {c.checkIn.sleep}
             <input type="number" inputMode="decimal" min={0} max={16} step="0.5" defaultValue={day.sleep} key={`z${date}${day.sleep}`} onBlur={(e) => e.target.valueAsNumber !== day.sleep && patch({ sleep: num(e.target.valueAsNumber) })} />
           </label>
           <label className="field">
-            Energy
+            {c.checkIn.energy}
             <select value={day.energy ?? ''} onChange={(e) => patch({ energy: num(Number(e.target.value)) })}>
               <option value="">-</option>
-              {['1 Drained', '2 Low', '3 Okay', '4 Good', '5 Great'].map((l, i) => (
+              {c.checkIn.energyLevels.map((l, i) => (
                 <option key={l} value={i + 1}>
                   {l}
                 </option>
@@ -67,10 +75,10 @@ export function Today({ profile }: { profile: Profile }) {
             </select>
           </label>
           <label className="field">
-            Soreness
+            {c.checkIn.soreness}
             <select value={day.soreness ?? ''} onChange={(e) => patch({ soreness: num(Number(e.target.value)) })}>
               <option value="">-</option>
-              {['1 None', '2 Mild', '3 Some', '4 Heavy', '5 Very heavy'].map((l, i) => (
+              {c.checkIn.sorenessLevels.map((l, i) => (
                 <option key={l} value={i + 1}>
                   {l}
                 </option>
@@ -79,25 +87,28 @@ export function Today({ profile }: { profile: Profile }) {
           </label>
         </div>
         <label className="field">
-          Feeling unwell?
+          {c.checkIn.unwell}
           <select value={day.sick ?? 'none'} onChange={(e) => patch({ sick: e.target.value as Sickness })}>
-            <option value="none">No</option>
-            <option value="aboveNeck">Only above the neck: runny nose, mild sore throat</option>
-            <option value="belowNeck">Fever, body aches, chest or stomach symptoms</option>
+            {(['none', 'aboveNeck', 'belowNeck'] as const).map((s) => (
+              <option key={s} value={s}>
+                {c.checkIn.sick[s]}
+              </option>
+            ))}
           </select>
         </label>
       </Card>
 
       {next && (
-        <Card title="Training" action={<a href="#train">{ready.level === 'rest' ? 'View' : 'Start'}</a>}>
-          <p>
-            Next up: <strong>{next.name}</strong>
-            {ready.level === 'reduced' && `, at about ${Math.round(ready.volume * 100)}% of the sets`}
-          </p>
+        <Card title={c.training.title} action={<a href="#train">{ready.level === 'rest' ? c.training.view : c.training.start}</a>}>
+          {ready.level === 'reduced' ? (
+            <p lang={adviceLang}>{rich(fill(h.today.nextReduced, { name: dayLabel(next.name), pct: Math.round(ready.volume * 100) }), bold)}</p>
+          ) : (
+            <p>{rich(fill(c.training.next, { name: dayLabel(next.name) }), bold)}</p>
+          )}
           {ready.advice.length > 0 && (
-            <ul className={`advice ${ready.level}`}>
+            <ul className={`advice ${ready.level}`} lang={adviceLang}>
               {ready.advice.map((a) => (
-                <li key={a}>{a}</li>
+                <li key={a}>{h.train.advice[a]}</li>
               ))}
             </ul>
           )}
@@ -105,9 +116,9 @@ export function Today({ profile }: { profile: Profile }) {
       )}
 
       <div className="grid two">
-        <Card title="Water">
+        <Card title={c.water.title}>
           <p className="big num">
-            {((day.waterMl ?? 0) / 1000).toLocaleString('en-IN', { maximumFractionDigits: 2 })} <span>of {fmt(t.waterMl / 1000, 1)} litres</span>
+            {rich(fill(c.water.amount, { n: ((day.waterMl ?? 0) / 1000).toLocaleString('en-IN', { maximumFractionDigits: 2 }), target: fmt(t.waterMl / 1000, 1) }), small)}
           </p>
           <div className="row">
             <button type="button" className="btn" onClick={() => patch({ waterMl: Math.max(0, (day.waterMl ?? 0) - 250) })} disabled={!day.waterMl}>
@@ -118,10 +129,10 @@ export function Today({ profile }: { profile: Profile }) {
             </button>
           </div>
         </Card>
-        <Card title="Body">
+        <Card title={c.body.title}>
           <div className="grid two">
             <label className="field">
-              Weight (kg)
+              {c.body.weight}
               <input
                 type="number"
                 inputMode="decimal"
@@ -140,23 +151,25 @@ export function Today({ profile }: { profile: Profile }) {
               />
             </label>
             <label className="field">
-              Steps
+              {c.body.steps}
               <input type="number" inputMode="numeric" min={0} max={100000} step="1" defaultValue={day.steps} key={`s${date}${day.steps}`} onBlur={(e) => e.target.valueAsNumber !== day.steps && patch({ steps: num(e.target.valueAsNumber) })} />
             </label>
           </div>
-          <p className="hint">Weigh in each morning after the toilet; the trend matters, not any one day. Aim for 7,000-10,000 steps.</p>
+          <p className="hint" lang={adviceLang}>
+            {h.today.bodyHint}
+          </p>
         </Card>
       </div>
 
       {!profile.fasting && <FastingCard profile={profile} t={t} day={day} date={date} patch={patch} />}
 
-      <Card title="Supplements" action={<a href="#more">Guide</a>}>
+      <Card title={c.supplements.title} action={<a href="#more">{c.supplements.guide}</a>}>
         <ul className="checks">
           {recs.map(({ id }) => (
             <li key={id}>
               <label className="check">
                 <input type="checkbox" checked={day.supplements?.includes(id) ?? false} onChange={(e) => patch({ supplements: toggle(day.supplements ?? [], id, e.target.checked) })} />
-                {SUPPLEMENTS[id].name}
+                {labels.supplements[id]}
               </label>
             </li>
           ))}
@@ -169,7 +182,7 @@ export function Today({ profile }: { profile: Profile }) {
 const num = (n: number) => (Number.isFinite(n) && n > 0 ? n : undefined);
 const toggle = (list: SupplementId[], id: SupplementId, on: boolean) => (on ? [...new Set([...list, id])] : list.filter((x) => x !== id));
 
-const time = (d: Date) => d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+const time = (d: Date) => fmtDate(d, { hour: 'numeric', minute: '2-digit' });
 /** `n` split into `parts` near-equal whole numbers, the larger ones first. */
 const split = (n: number, parts: number) => Array.from({ length: parts }, (_, i) => Math.floor(n / parts) + (i < n % parts ? 1 : 0));
 
@@ -184,38 +197,33 @@ function FastingCard(props: { profile: Profile; t: Targets; day: Day; date: stri
   const ramadan = f?.mode === 'ramadan' ? { ...ramadanTimes(f, next ? addDays(date, 1) : date), city: 'city' in f ? CITIES[f.city][0] : undefined } : undefined;
   const water = split(Math.ceil(t.waterMl / 250), 4);
   return (
-    <Card title="Fasting" action={f && <span className="muted">{f.mode === 'if' ? ifName(f.hours) : f.mode === 'ramadan' ? 'Ramadan' : 'Navratri'}</span>}>
+    <Card title={c.fasting.title} action={f && <span className="muted">{f.mode === 'if' ? ifName(f.hours) : c.fasting[f.mode]}</span>}>
       {live && (
         <p className="fast-state" role="status">
-          <strong>{live.eating ? 'Eating window open' : 'Fasting'}</strong>
-          {ramadan ? (live.eating ? `, suhoor ends at ${time(live.until)}` : `, iftar at ${time(live.until)}`) : live.eating ? `, closes at ${time(live.until)}` : `, eating window opens at ${time(live.until)}`}
+          {rich(fill(c.fasting.state[`${ramadan ? 'ramadan' : 'if'}${live.eating ? 'Eating' : 'Fasting'}`], { time: time(live.until) }), bold)}
         </p>
       )}
       {ramadan && (
         <>
-          <p className="num">
-            {next && 'Tomorrow: '}Suhoor ends <strong>{time(ramadan.fajr)}</strong> · Iftar <strong>{time(ramadan.maghrib)}</strong>
-          </p>
-          {ramadan.city && <p className="hint">Worked out for {ramadan.city} from the sun's position (Fajr at 18 degrees); your mosque's timetable may differ by a few minutes.</p>}
-          <ul className="advice">
-            <li>
-              Water: {water[0]} glasses at iftar, {water[1]} through the evening, {water[2]} with dinner and {water[3]} at suhoor.
-            </li>
-            <li>Protein: about {fmt(Math.round(t.protein / 3 / 5) * 5)} g each at iftar, dinner and suhoor.</li>
+          <p className="num">{rich(fill(next ? c.fasting.timesTomorrow : c.fasting.times, { fajr: time(ramadan.fajr), maghrib: time(ramadan.maghrib) }), bold)}</p>
+          {ramadan.city && <p className="hint">{fill(c.fasting.cityHint, { city: ramadan.city })}</p>}
+          <ul className="advice" lang={adviceLang}>
+            <li>{fill(h.today.fasting.water, { iftar: water[0], evening: water[1], dinner: water[2], suhoor: water[3] })}</li>
+            <li>{fill(h.today.fasting.protein, { g: fmt(Math.round(t.protein / 3 / 5) * 5) })}</li>
           </ul>
         </>
       )}
       <label className="check">
         <input type="checkbox" checked={vrat} disabled={f?.mode === 'navratri'} onChange={(e) => props.patch({ vrat: e.target.checked })} />
-        Vrat today (Ekadashi or another fast day)
+        {c.fasting.vrat}
       </label>
-      {f?.mode === 'navratri' && <p className="hint">On for all of Navratri. Change it in More.</p>}
-      {vrat && (
-        <p className="hint">
-          Food search and the meal plan show only vrat foods. <a href="#food">Plan the day</a>
+      {f?.mode === 'navratri' && <p className="hint">{c.fasting.navratriHint}</p>}
+      {vrat && <p className="hint">{rich(c.fasting.vratHint, { a: (x) => <a href="#food">{x}</a> })}</p>}
+      {(f || vrat) && (
+        <p className="hint" lang={adviceLang}>
+          {h.today.fasting.safety}
         </p>
       )}
-      {(f || vrat) && <p className="hint">Break the fast and see a doctor if you feel faint, dizzy, confused or unwell.</p>}
     </Card>
   );
 }

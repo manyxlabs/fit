@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { NOT_WORTH_IT, recommend, SUPPLEMENTS, type SupplementId } from '../data/supplements';
-import { backup, db, restore, STORES, today, type Profile } from './db';
+import { NOT_WORTH_IT, recommend, SUPPLEMENTS, type Recommendation, type SupplementId } from '../data/supplements';
+import { localePath, NAMES, type Locale } from '../i18n/locales';
+import { BadBackup, backup, db, restore, STORES, today, type Profile } from './db';
 import { targets, totals, useAsync, useBump } from './hooks';
 import { saveProfile } from './Onboarding';
 import { HealthImport } from './HealthImport';
@@ -9,6 +10,7 @@ import { mb } from './Photos';
 import { RemindersCard } from './Reminders';
 import { SyncCard } from './Pairing';
 import { useSyncState } from './sync';
+import { adviceLang, choose, d, fill, h, lang, LOCALES, t } from './i18n';
 import { Card } from './ui';
 
 export function More({ profile }: { profile: Profile }) {
@@ -35,15 +37,15 @@ export function More({ profile }: { profile: Profile }) {
 
   return (
     <>
-      <h1 className="page-title">More</h1>
-      <Card title="Supplements for you">
+      <h1 className="page-title">{t.more.title}</h1>
+      <Card title={t.more.supplements.title}>
         <ul className="supps">
-          {recs.map(({ id, reason }) => (
-            <Supp key={id} id={id} reason={reason} />
+          {recs.map((r) => (
+            <Supp key={r.id} id={r.id} reason={reason(r)} />
           ))}
         </ul>
         <details>
-          <summary>Others, and when they help</summary>
+          <summary>{t.more.supplements.others}</summary>
           <ul className="supps">
             {others.map((id) => (
               <Supp key={id} id={id} />
@@ -51,24 +53,36 @@ export function More({ profile }: { profile: Profile }) {
           </ul>
         </details>
         <details>
-          <summary>Usually a waste of money</summary>
-          <ul className="supps">
-            {NOT_WORTH_IT.map((s) => (
-              <li key={s.name}>
-                <strong>{s.name}</strong>
-                <p>{s.why}</p>
+          <summary>{t.more.supplements.waste}</summary>
+          <ul className="supps" lang={adviceLang}>
+            {NOT_WORTH_IT.map((id) => (
+              <li key={id}>
+                <strong>{h.more.notWorthIt[id].name}</strong>
+                <p>{h.more.notWorthIt[id].why}</p>
               </li>
             ))}
           </ul>
         </details>
-        <p className="hint">Buy third-party tested products and avoid proprietary blends. Check with a doctor if you have a medical condition, take medication or are pregnant.</p>
+        <p className="hint" lang={adviceLang}>
+          {h.more.buySafely}
+        </p>
       </Card>
 
-      <Card title="Your details">
+      <Card title={t.more.details.title}>
+        <label className="field">
+          {t.more.language}
+          <select value={lang} onChange={(e) => choose(e.target.value as Locale)}>
+            {LOCALES.map((l) => (
+              <option key={l} value={l} lang={l}>
+                {NAMES[l]}
+              </option>
+            ))}
+          </select>
+        </label>
         <ProfileForm
           initial={profile}
           askWeight={false}
-          submit={saved ? 'Saved' : 'Save changes'}
+          submit={saved ? t.more.details.saved : t.more.details.save}
           onSave={async (p) => {
             await saveProfile(p);
             setSaved(true);
@@ -81,24 +95,20 @@ export function More({ profile }: { profile: Profile }) {
       <SyncCard />
       <RemindersCard />
 
-      <Card title="Your data">
-        <p className="hint">
-          {synced
-            ? 'Everything lives in this browser and your synced devices. Download a backup now and then, to keep a copy of your own.'
-            : 'Everything lives only in this browser. Download a backup now and then, and restore it on a new phone or after clearing the browser.'}
-        </p>
+      <Card title={t.more.data.title}>
+        <p className="hint">{synced ? t.more.data.synced : t.more.data.local}</p>
         {!!photoBytes && (
           <label className="check">
             <input type="checkbox" checked={withPhotos} onChange={(e) => setWithPhotos(e.target.checked)} />
-            Include progress photos (about {mb((photoBytes * 4) / 3)}, as base64)
+            {fill(t.more.data.withPhotos, { size: mb((photoBytes * 4) / 3) })}
           </label>
         )}
         <div className="row">
           <button type="button" className="btn primary" onClick={download}>
-            Download backup
+            {t.more.data.download}
           </button>
           <label className="btn">
-            Restore a backup
+            {t.more.data.restore}
             <input
               type="file"
               accept="application/json,.json"
@@ -106,13 +116,13 @@ export function More({ profile }: { profile: Profile }) {
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 e.target.value = '';
-                if (!file || !confirm(synced ? 'Replace everything here and on your synced devices with this backup?' : 'Replace everything here with this backup?')) return;
+                if (!file || !confirm(synced ? t.more.data.restoreConfirmSynced : t.more.data.restoreConfirm)) return;
                 try {
                   await restore(JSON.parse(await file.text()));
                   setError(undefined);
                   bump();
                 } catch (err) {
-                  setError(err instanceof SyntaxError ? 'That file is not a backup.' : (err as Error).message);
+                  setError(err instanceof BadBackup ? t.more.data.badBackup[err.code] : err instanceof SyntaxError ? t.more.data.notBackup : (err as Error).message);
                 }
               }}
             />
@@ -121,14 +131,13 @@ export function More({ profile }: { profile: Profile }) {
             type="button"
             className="btn danger"
             onClick={async () => {
-              if (!confirm(synced ? 'Delete all your data from this browser and your synced devices? This cannot be undone.' : 'Delete all your data from this browser? This cannot be undone.'))
-                return;
+              if (!confirm(synced ? t.more.data.deleteConfirmSynced : t.more.data.deleteConfirm)) return;
               const d = await db;
               await Promise.all(STORES.map((s) => d.clear(s)));
               bump();
             }}
           >
-            Delete everything
+            {t.more.data.deleteAll}
           </button>
         </div>
         {error && <p className="error">{error}</p>}
@@ -136,13 +145,13 @@ export function More({ profile }: { profile: Profile }) {
 
       <HealthImport />
 
-      <Card title="Learn">
+      <Card title={t.more.learn.title}>
         <ul className="plan">
           <li>
-            <a href="/guides/">Guides: training, nutrition, supplements, sleep, special cases</a>
+            <a href={localePath(adviceLang ?? lang, '/guides/')}>{t.more.learn.guides}</a>
           </li>
           <li>
-            <a href="/calculators/">Calculators: BMI, TDEE, macros, body fat, one-rep max, heart-rate zones</a>
+            <a href={localePath(lang, '/calculators/')}>{t.more.learn.calculators}</a>
           </li>
         </ul>
       </Card>
@@ -152,14 +161,29 @@ export function More({ profile }: { profile: Profile }) {
 
 function Supp({ id, reason }: { id: SupplementId; reason?: string }) {
   const s = SUPPLEMENTS[id];
+  const copy = h.more.supplements[id];
   return (
     <li>
-      <strong>{s.name}</strong> <span className={`tag ${s.evidence}`}>{s.evidence} evidence</span>
-      {reason && <p>{reason}</p>}
-      <p className="muted">
-        {s.dose} {s.why}
+      <strong>{d.supplements[id]}</strong>{' '}
+      <span className={`tag ${s.evidence}`} lang={adviceLang}>
+        {h.more.evidence[s.evidence]}
+      </span>
+      {reason && <p lang={adviceLang}>{reason}</p>}
+      <p className="muted" lang={adviceLang}>
+        {copy.dose} {copy.why}
       </p>
-      {'caution' in s && <p className="muted">{s.caution}</p>}
+      {'caution' in copy && (
+        <p className="muted" lang={adviceLang}>
+          {copy.caution}
+        </p>
+      )}
     </li>
   );
+}
+
+function reason(r: Recommendation) {
+  const why = h.more.reasons;
+  if (r.id === 'protein') return fill(why.protein, { g: r.gapG });
+  if (r.id === 'b12') return why.b12[r.diet];
+  return why[r.id];
 }

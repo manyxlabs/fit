@@ -1,10 +1,13 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { db, POSES, today, type Photo, type Pose } from './db';
 import { useAsync, useBump } from './hooks';
+import { rich } from '../i18n/rich';
+import { date as format, fill, plural, t } from './i18n';
 import { Card, fmt } from './ui';
 
 const LONG_EDGE = 1600;
-const label = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const label = (date: string) => format(date, { day: 'numeric', month: 'short', year: 'numeric' });
+const c = t.progress;
 export const mb = (bytes: number) => `${fmt(bytes / 1e6, bytes < 1e7 ? 1 : 0)} MB`;
 
 /** Re-encoding through a canvas drops EXIF, so no location or camera details are kept. */
@@ -45,7 +48,7 @@ export function Photos() {
       setError(undefined);
       bump();
     } catch {
-      setError('That image could not be read. Try a JPEG or PNG.');
+      setError(c.photos.unreadable);
     }
   }
   async function remove(keys: [string, Pose][], ask: string) {
@@ -59,31 +62,32 @@ export function Photos() {
 
   return (
     <>
-      <Card title="Progress photos">
-        <p className="hint">Front, side and back every 2-4 weeks, in the same spot, light and clothes. They stay on this device: they are not uploaded anywhere.</p>
+      <Card title={c.photos.title}>
+        <p className="hint">{c.photos.about}</p>
         <label className="field photo-date">
-          Date
+          {c.photos.date}
           <input type="date" value={date} max={today()} onChange={(e) => e.target.value && setDate(e.target.value)} />
         </label>
         <div className="poses">
           {POSES.map((pose) => {
             const photo = onDate.find((p) => p.pose === pose);
+            const vars = { pose: c.photos.posesInline[pose], date: label(date) };
             const input = (capture: boolean) => (
-              <input type="file" accept="image/*" capture={capture} aria-label={`${capture ? 'Take' : 'Choose'} ${pose} photo`} onChange={(e) => (add(pose, e.target.files?.[0]), (e.target.value = ''))} />
+              <input type="file" accept="image/*" capture={capture} aria-label={fill(capture ? c.photos.take : c.photos.choose, vars)} onChange={(e) => (add(pose, e.target.files?.[0]), (e.target.value = ''))} />
             );
             return (
               <figure key={pose}>
                 <label className="shot">
-                  {photo ? <Img blob={photo.blob} alt={`${pose} on ${label(date)}`} /> : <span>+</span>}
+                  {photo ? <Img blob={photo.blob} alt={fill(c.photos.alt, vars)} /> : <span>+</span>}
                   {input(false)}
                 </label>
                 {photo && (
-                  <button type="button" className="icon-btn delete" aria-label={`Delete ${pose} photo`} onClick={() => remove([[date, pose]], `Delete the ${pose} photo from ${label(date)}?`)}>
+                  <button type="button" className="icon-btn delete" aria-label={fill(c.photos.delete, vars)} onClick={() => remove([[date, pose]], fill(c.photos.confirmDelete, vars))}>
                     ×
                   </button>
                 )}
                 <figcaption>
-                  <span>{pose[0].toUpperCase() + pose.slice(1)}</span>
+                  <span>{c.photos.poses[pose]}</span>
                   <label className="icon-btn">
                     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                       <path d="M4 8h3l2-3h6l2 3h3v11H4zM12 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
@@ -97,7 +101,7 @@ export function Photos() {
         </div>
         {error && <p className="error">{error}</p>}
         {dates.length > 0 && (
-          <div className="row" role="group" aria-label="Dates with photos">
+          <div className="row" role="group" aria-label={c.photos.dates}>
             {dates.map((d) => (
               <button key={d} type="button" className={`chip${d === date ? ' on' : ''}`} onClick={() => setDate(d)}>
                 {label(d)}
@@ -106,20 +110,18 @@ export function Photos() {
           </div>
         )}
         {onDate.length > 0 && (
-          <button type="button" className="btn danger" onClick={() => remove(keysOf(onDate), `Delete all ${onDate.length} photos from ${label(date)}?`)}>
-            Delete this date
+          <button type="button" className="btn danger" onClick={() => remove(keysOf(onDate), fill(plural(onDate.length, c.photos.confirmDeleteDate), { date: label(date) }))}>
+            {c.photos.deleteDate}
           </button>
         )}
       </Card>
       {dates.length >= 2 && <Compare photos={photos} />}
       {photos.length > 0 && (
-        <Card title="Photo storage">
-          <p>
-            {photos.length} photos use <strong className="num">{mb(bytes)}</strong> of this browser’s storage.
-          </p>
+        <Card title={c.storage.title}>
+          <p>{rich(fill(plural(photos.length, c.storage.used), { size: mb(bytes) }), { b: (s) => <strong className="num">{s}</strong> })}</p>
           <Persist />
-          <button type="button" className="btn danger" onClick={() => remove(keysOf(photos), `Delete all ${photos.length} progress photos? This cannot be undone.`)}>
-            Delete all photos
+          <button type="button" className="btn danger" onClick={() => remove(keysOf(photos), plural(photos.length, c.storage.confirmDeleteAll))}>
+            {c.storage.deleteAll}
           </button>
         </Card>
       )}
@@ -134,15 +136,13 @@ function Persist() {
     navigator.storage?.persisted?.().then(setState);
   }, []);
   if (state === undefined) return null;
-  if (state === true) return <p className="hint">This browser has agreed not to clear Fit’s data when the device runs low on space. A backup in More is still the only copy off this device.</p>;
+  if (state === true) return <p className="hint">{c.storage.persisted}</p>;
   return (
     <>
-      <p className="hint">
-        When a phone runs low on space, the browser may delete a site’s data, photos included. You can ask it to keep Fit’s data. Chrome decides by itself and usually agrees for sites you use often or add to the home screen; Firefox asks you.
-      </p>
-      {state === 'refused' && <p className="warn">The browser did not agree this time. Adding Fit to the home screen usually helps; either way, keep a backup.</p>}
+      <p className="hint">{c.storage.persistAbout}</p>
+      {state === 'refused' && <p className="warn">{c.storage.refused}</p>}
       <button type="button" className="btn" onClick={async () => setState((await navigator.storage.persist()) || 'refused')}>
-        Keep Fit’s data
+        {c.storage.persist}
       </button>
     </>
   );
@@ -159,7 +159,7 @@ function Compare({ photos }: { photos: Photo[] }) {
 
   const pick = (i: 0 | 1) => (
     <label className="field">
-      {i ? 'After' : 'Before'}
+      {i ? c.compare.after : c.compare.before}
       <select value={(i ? b : a)?.date ?? ''} onChange={(e) => setPicked(i ? [a?.date, e.target.value] : [e.target.value, b?.date])}>
         {ofPose.map((p) => (
           <option key={p.date} value={p.date}>
@@ -170,17 +170,17 @@ function Compare({ photos }: { photos: Photo[] }) {
     </label>
   );
   return (
-    <Card title="Compare photos">
+    <Card title={c.compare.title}>
       <fieldset className="seg">
         {POSES.map((p) => (
           <label key={p}>
             <input type="radio" name="compare-pose" checked={pose === p} onChange={() => (setPose(p), setPicked([]))} />
-            {p[0].toUpperCase() + p.slice(1)}
+            {c.photos.poses[p]}
           </label>
         ))}
       </fieldset>
       {ofPose.length < 2 ? (
-        <p className="hint">Add a {pose} photo on two dates to compare them.</p>
+        <p className="hint">{fill(c.compare.needTwo, { pose: c.photos.posesInline[pose] })}</p>
       ) : (
         <>
           <div className="grid two">
@@ -190,23 +190,21 @@ function Compare({ photos }: { photos: Photo[] }) {
           <fieldset className="seg">
             <label>
               <input type="radio" name="compare-mode" checked={!slider} onChange={() => setSlider(false)} />
-              Side by side
+              {c.compare.sideBySide}
             </label>
             <label>
               <input type="radio" name="compare-mode" checked={slider} onChange={() => setSlider(true)} />
-              Slider
+              {c.compare.slider}
             </label>
           </fieldset>
           {a && b && slider ? (
             <>
               <div className="overlay" style={{ '--split': `${split}%` } as CSSProperties}>
-                <Img blob={a.blob} alt={`Before, ${label(a.date)}`} />
-                <Img blob={b.blob} alt={`After, ${label(b.date)}`} />
+                <Img blob={a.blob} alt={fill(c.compare.beforeAlt, { date: label(a.date) })} />
+                <Img blob={b.blob} alt={fill(c.compare.afterAlt, { date: label(b.date) })} />
               </div>
-              <input type="range" min={0} max={100} value={split} onChange={(e) => setSplit(e.target.valueAsNumber)} aria-label="Before or after" />
-              <p className="hint num">
-                Left: {label(a.date)}. Right: {label(b.date)}.
-              </p>
+              <input type="range" min={0} max={100} value={split} onChange={(e) => setSplit(e.target.valueAsNumber)} aria-label={c.compare.sliderLabel} />
+              <p className="hint num">{fill(c.compare.sliderNote, { before: label(a.date), after: label(b.date) })}</p>
             </>
           ) : (
             a &&
@@ -214,7 +212,7 @@ function Compare({ photos }: { photos: Photo[] }) {
               <div className="compare">
                 {[a, b].map((p, i) => (
                   <figure key={i}>
-                    <Img blob={p.blob} alt={`${i ? 'After' : 'Before'}, ${label(p.date)}`} />
+                    <Img blob={p.blob} alt={fill(i ? c.compare.afterAlt : c.compare.beforeAlt, { date: label(p.date) })} />
                     <figcaption className="hint">{label(p.date)}</figcaption>
                   </figure>
                 ))}

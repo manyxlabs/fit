@@ -10,11 +10,12 @@ import { More } from './More';
 import { refreshReminders } from './Reminders';
 import { Join } from './Pairing';
 import { scheduleSync, secretIn, startSync } from './sync';
+import { t } from './i18n';
 import './app.css';
 
-const TABS = { today: 'Today', food: 'Food', train: 'Train', progress: 'Progress', more: 'More' } as const;
-type Tab = keyof typeof TABS;
-const tabOf = (hash: string): Tab => (hash.slice(1) in TABS ? (hash.slice(1) as Tab) : 'today');
+const TABS = ['today', 'food', 'train', 'progress', 'more'] as const;
+type Tab = (typeof TABS)[number];
+const tabOf = (hash: string): Tab => (TABS.includes(hash.slice(1) as Tab) ? (hash.slice(1) as Tab) : 'today');
 
 export default function App() {
   const [v, setV] = useState(0);
@@ -73,11 +74,11 @@ function Shell() {
         {tab === 'progress' && <Progress profile={profile} />}
         {tab === 'more' && <More profile={profile} />}
       </main>
-      <nav className="tabs glass" aria-label="App">
-        {(Object.keys(TABS) as Tab[]).map((t) => (
-          <a key={t} href={`#${t}`} aria-current={t === tab ? 'page' : undefined}>
-            <Icon tab={t} />
-            {TABS[t]}
+      <nav className="tabs glass" aria-label={t.shell.nav}>
+        {TABS.map((x) => (
+          <a key={x} href={`#${x}`} aria-current={x === tab ? 'page' : undefined}>
+            <Icon tab={x} />
+            {t.shell.tabs[x]}
           </a>
         ))}
       </nav>

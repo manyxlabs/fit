@@ -1,0 +1,56 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import Calc from '../../../calcs/Calculators';
+import { CALCULATORS } from '../../../calcs/list';
+import { guideTitle } from '../../../guides';
+import { pageLocale } from '../../../i18n';
+import { appHref, langParams, localePath } from '../../../i18n/locales';
+import '../../../styles/pages.css';
+
+export const getStaticPaths = () => langParams().flatMap((lang) => CALCULATORS.map((c) => ({ params: { lang, slug: c.slug }, props: { c } })));
+const { c } = Astro.props;
+const { locale, t, calc, data, advice, health, href } = pageLocale(Astro.url);
+const page = calc.pages[c.slug];
+const others = CALCULATORS.filter((o) => o.slug !== c.slug);
+// Health copy waiting for review is shown in English, and marked so.
+const adviceLang = health === locale ? undefined : health;
+---
+
+<Base og={`calculator-${c.slug}`} title={page.title} description={page.description} schema={[{ '@type': 'WebApplication', name: page.title, inLanguage: locale, applicationCategory: 'HealthApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' } }]}>
+  <Header />
+  <main class="wrap page">
+    <p class="crumbs"><a href={href('/calculators/')}>{t.calculators.crumb}</a></p>
+    <h1>{page.title}</h1>
+    <p class="lede">{page.description}</p>
+    <Calc
+      client:load
+      name={c.component}
+      t={{
+        calc,
+        data: { sex: data.sex, activity: data.activity, goals: data.goalsShort, bmi: data.bmi, zones: data.zones, activities: data.activities },
+        notes: { floored: advice.calc.floored, waistAim: advice.calc.waistAim, waterCheck: advice.calc.waterCheck, lang: adviceLang },
+      }}
+    />
+    <section class="prose">
+      <h2>{t.calculators.how}</h2>
+      <div lang={adviceLang}>
+        {advice.calc.how[c.slug].map((s) => <p>{s}</p>)}
+      </div>
+      <p>{t.calculators.readMore} <a href={localePath(health, `/guides/${c.guide}/`)} lang={adviceLang}>{guideTitle(c.guide, health)}</a>.</p>
+    </section>
+    <section class="cta glass">
+      <div>
+        <h2>{t.calculators.ctaHeading}</h2>
+        <p>{t.calculators.cta}</p>
+      </div>
+      <a class="btn primary" href={appHref(locale)}>{t.calculators.openApp}</a>
+    </section>
+    <nav class="more-links" aria-label={t.calculators.others}>
+      <h2>{t.calculators.others}</h2>
+      <ul>{others.map((o) => <li><a href={href(`/calculators/${o.slug}/`)}>{calc.pages[o.slug].name}</a></li>)}</ul>
+    </nav>
+  </main>
+  <Footer />
+</Base>

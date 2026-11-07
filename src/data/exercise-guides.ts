@@ -1211,42 +1211,14 @@ export const HOW_TO = {
   },
 } satisfies Record<ExerciseId, HowTo>;
 
-/** Breathing and tempo by kind of exercise, unless the exercise overrides it. */
+/** Which default breathing and tempo applies, unless the exercise has its own (`breath`). */
 export function breathing(id: ExerciseId) {
   const e: Exercise = EXERCISES[id];
-  const own: HowTo = HOW_TO[id];
-  if (own.breath) return own.breath;
-  if (e.kind === 'hold') return 'Breathe slowly and steadily for the whole hold; never hold your breath. Stay still rather than shaking through it.';
-  if (e.kind === 'conditioning') return 'Breathe rhythmically and move at a pace you can hold for the whole round. Slow down before your form breaks.';
-  if (e.compound) return 'Breathe in and brace your midsection before each rep, hold it through the hardest part, and breathe out at the top. Lower in about 2-3 seconds, then lift firmly without bouncing.';
-  return 'Breathe out as you lift and in as you lower. Lift in about 1-2 seconds, pause briefly where the muscle is shortest, and lower in 2-3 seconds.';
+  return e.kind ?? (e.compound ? 'compound' : 'isolation');
 }
 
-/** Starting sets and reps, by kind of exercise. */
-export function dose(id: ExerciseId): [label: string, text: string][] {
+/** Which starting sets and reps apply: holds, conditioning, bodyweight (no load step), loaded compounds, isolation. */
+export function dose(id: ExerciseId) {
   const e: Exercise = EXERCISES[id];
-  if (e.kind === 'hold')
-    return [
-      ['Beginners', '2-3 holds of 20-30 seconds, resting 30-60 seconds between them.'],
-      ['Progressing', '3 holds of 45-60 seconds, then move to the harder version.'],
-    ];
-  if (e.kind === 'conditioning')
-    return [
-      ['Beginners', '3-5 rounds of 20-30 seconds, with 30-60 seconds of rest.'],
-      ['Fitness', '6-10 rounds of 30-40 seconds, with 20-30 seconds of rest.'],
-    ];
-  if (e.step === 0)
-    return [
-      ['Beginners', '2-3 sets, stopping each 2-3 reps short of failure.'],
-      ['Building muscle', '3-4 sets of 8-20 reps, stopping 0-2 reps short of failure. Past 20, move to the harder version.'],
-    ];
-  if (e.compound)
-    return [
-      ['Beginners', '3 sets of 6-10 reps, stopping 2-3 reps short of failure.'],
-      ['Building muscle', '3-4 sets of 6-12 reps, stopping 1-2 reps short of failure.'],
-    ];
-  return [
-    ['Beginners', '2-3 sets of 10-15 reps, stopping 2-3 reps short of failure.'],
-    ['Building muscle', '3-4 sets of 10-20 reps, stopping 0-2 reps short of failure.'],
-  ];
+  return e.kind ?? (e.step === 0 ? 'bodyweight' : e.compound ? 'compound' : 'isolation');
 }
