@@ -1,0 +1,135 @@
+---
+import { MUSCLES, type Muscle } from '../data/exercises';
+
+type Props = { primary: Muscle[]; secondary: Muscle[] };
+const { primary, secondary } = Astro.props;
+
+/**
+ * The left half of each figure, centred on x = 60 and mirrored for the right; null is skin and
+ * joints, which no exercise highlights. The back figure is shifted 120 to the right.
+ */
+const FRONT: [Muscle | null, string][] = [
+  [null, 'M55 25h5v8h-6z'],
+  ['traps', 'M55 30 Q52 34 42 37 L58 38 L58 31 Z'],
+  ['frontDelts', 'M41 38 Q33 38 30 46 L32 55 Q36 48 42 44 Z'],
+  ['sideDelts', 'M30 47 Q26 52 27 60 L31 56 Z'],
+  ['chest', 'M59 40 L44 40 Q38 47 36 55 Q39 64 48 66 L59 64 Z'],
+  ['biceps', 'M33 59 Q28 63 27 76 Q28 85 31 89 L35 86 Q37 73 36 60 Z'],
+  ['forearms', 'M26 92 Q21 104 20 126 L26 127 Q30 110 33 94 Z'],
+  [null, 'M19 129 Q17 140 21 146 Q26 146 27 140 L26 129 Z'],
+  ['lats', 'M37 58 Q40 65 45 67 L43 80 Q38 70 37 58 Z'],
+  ['obliques', 'M46 68 L52 70 L52 110 L46 116 Q42 100 43 84 Q43 74 46 68 Z'],
+  ['abs', 'M53 68 L59 68 L59 120 L53 114 Z'],
+  [null, 'M46 118 L52 113 L59 122 L59 127 L50 127 L43 125 Z'],
+  ['quads', 'M42 127 Q36 146 38 172 Q41 181 47 183 L53 181 Q55 158 53 138 L49 129 Z'],
+  ['adductors', 'M51 129 L59 129 L58 148 Q56 158 55 166 Q56 146 51 129 Z'],
+  [null, 'M41 186 Q42 193 48 194 Q54 193 54 186 Q48 184 41 186 Z'],
+  [null, 'M42 197 Q40 216 43 234 L51 234 Q55 216 54 197 Z'],
+  [null, 'M42 237 L52 237 Q54 243 51 246 L40 246 Q39 241 42 237 Z'],
+];
+const BACK: [Muscle | null, string][] = [
+  [null, 'M55 25h5v6h-5z'],
+  ['traps', 'M59 27 Q55 33 42 37 L49 42 L59 62 Z'],
+  ['rearDelts', 'M41 38 Q33 38 30 46 L33 52 Q38 46 44 41 Z'],
+  ['sideDelts', 'M30 47 Q26 52 27 60 L33 53 Z'],
+  ['upperBack', 'M45 42 L49 44 L57 62 L53 69 L45 65 Q40 57 39 49 Z'],
+  ['triceps', 'M33 56 Q28 62 27 76 Q28 85 31 89 L35 86 Q37 72 37 57 Z'],
+  ['forearms', 'M26 92 Q21 104 20 126 L26 127 Q30 110 33 94 Z'],
+  [null, 'M19 129 Q17 140 21 146 Q26 146 27 140 L26 129 Z'],
+  ['lats', 'M38 54 Q37 76 46 104 L55 96 L53 72 L45 67 Z'],
+  ['lowerBack', 'M55 70 L59 64 L59 118 L47 117 L47 107 L57 98 Z'],
+  ['glutes', 'M46 119 Q39 128 40 141 Q48 149 59 144 L59 121 Z'],
+  ['hamstrings', 'M40 145 Q37 165 41 182 L54 182 Q57 166 56 151 Q48 151 40 145 Z'],
+  ['adductors', 'M57 151 L59 149 L59 168 L56 178 Q58 163 57 151 Z'],
+  [null, 'M41 185 Q42 191 48 192 Q54 191 55 185 Z'],
+  ['calves', 'M42 195 Q37 208 41 222 Q47 226 53 222 Q57 208 54 195 Q48 193 42 195 Z'],
+  [null, 'M42 224 Q47 228 53 224 L51 236 L44 236 Z'],
+  [null, 'M43 238 L52 238 Q54 243 52 246 L43 246 Q41 242 43 238 Z'],
+];
+
+const role = (m: Muscle | null) => (m && primary.includes(m) ? 'main' : m && secondary.includes(m) ? 'assist' : undefined);
+const names = (ms: Muscle[]) => ms.map((m) => MUSCLES[m]).join(', ');
+const title = `Muscles worked: ${names(primary)}${secondary.length ? `; assisting: ${names(secondary)}` : ''}.`;
+---
+
+<figure class="muscle-map">
+  <svg viewBox="0 0 240 258" role="img" aria-labelledby="muscle-map-title">
+    <title id="muscle-map-title">{title}</title>
+    {
+      [FRONT, BACK].map((parts, i) => (
+        <g transform={`translate(${i * 120} 0)`}>
+          <circle cx="60" cy="14" r="10" />
+          {['', 'translate(120 0) scale(-1 1)'].map((t) => (
+            <g transform={t || undefined}>
+              {parts.map(([m, d]) => (
+                <path d={d} class={role(m)} data-muscle={m ?? undefined} />
+              ))}
+            </g>
+          ))}
+          <text x="60" y="256">{i ? 'Back' : 'Front'}</text>
+        </g>
+      ))
+    }
+  </svg>
+  <figcaption>
+    <span><i class="main"></i>Main</span>
+    {secondary.length > 0 && <span><i class="assist"></i>Assisting</span>}
+  </figcaption>
+</figure>
+
+<style>
+  .muscle-map {
+    --base: light-dark(#e2e4e9, #2a2a30);
+    --main: var(--accent);
+    --assist: color-mix(in srgb, var(--accent) 40%, var(--base));
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    margin: 0;
+  }
+
+  svg {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+  }
+
+  :is(circle, path) {
+    fill: var(--base);
+  }
+
+  .main {
+    fill: var(--main);
+    background: var(--main);
+  }
+
+  .assist {
+    fill: var(--assist);
+    background: var(--assist);
+  }
+
+  text {
+    fill: var(--muted);
+    font-size: 9px;
+    text-anchor: middle;
+  }
+
+  figcaption {
+    display: flex;
+    gap: 16px;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  figcaption span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  i {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+  }
+</style>

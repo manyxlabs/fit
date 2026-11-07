@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import MuscleMap from '../../components/MuscleMap.astro';
+import { alternatives, EQUIPMENT, EXERCISES, exerciseSlug, MUSCLES, type Exercise, type ExerciseId, type Muscle } from '../../data/exercises';
+import { breathing, dose, HOW_TO, type HowTo } from '../../data/exercise-guides';
+import { SITE } from '../../site';
+import '../../styles/pages.css';
+
+export const getStaticPaths = () => (Object.keys(EXERCISES) as ExerciseId[]).map((id) => ({ params: { slug: exerciseSlug(id) }, props: { id } }));
+const { id } = Astro.props;
+const ex: Exercise = EXERCISES[id];
+const how: HowTo = HOW_TO[id];
+const names = (ms: Muscle[]) => ms.map((m) => MUSCLES[m]).join(', ');
+const swaps = ex.setups.map((s) => [EQUIPMENT[s], alternatives(id, s)] as const).filter(([, a]) => a.length);
+const description = `How to do the ${ex.name.toLowerCase()}: muscles worked, step-by-step form, common mistakes, sets and reps, and swaps.`;
+const steps = how.steps.filter((s) => s !== undefined);
+---
+
+<Base
+  title={`${ex.name}: how to do it`}
+  description={description}
+  schema={[
+    {
+      '@type': 'HowTo',
+      name: `How to do the ${ex.name.toLowerCase()}`,
+      description: ex.cue,
+      url: `${SITE}/exercises/${exerciseSlug(id)}/`,
+      tool: [{ '@type': 'HowToTool', name: how.gear }],
+      step: steps.map((text, i) => ({ '@type': 'HowToStep', position: i + 1, text })),
+    },
+  ]}
+>
+  <Header />
+  <main class="wrap page">
+    <p class="crumbs"><a href="/exercises/">Exercises</a></p>
+    <h1>{ex.name}</h1>
+    <p class="lede">{ex.cue}</p>
+    <section class="ex-top">
+      <MuscleMap primary={ex.primary} secondary={ex.secondary} />
+      <dl class="facts">
+        <div>
+          <dt>Main muscles</dt>
+          <dd>{names(ex.primary)}</dd>
+        </div>
+        {
+          ex.secondary.length > 0 && (
+            <div>
+              <dt>Assisting</dt>
+              <dd>{names(ex.secondary)}</dd>
+            </div>
+          )
+        }
+        <div>
+          <dt>Equipment</dt>
+          <dd>{how.gear}</dd>
+        </div>
+        <div>
+          <dt>Works for</dt>
+          <dd>{ex.setups.map((s) => EQUIPMENT[s]).join(', ')}</dd>
+        </div>
+      </dl>
+    </section>
+    <article class="prose">
+      <h2>How to do it</h2>
+      <ol>{steps.map((s) => <li>{s}</li>)}</ol>
+      <h2>Common mistakes</h2>
+      <ul>{how.mistakes.filter(Boolean).map((s) => <li>{s}</li>)}</ul>
+      <h2>Breathing and tempo</h2>
+      <p>{breathing(id)}</p>
+      <h2>Make it harder or easier</h2>
+      <p><strong>Harder:</strong> {how.harder}</p>
+      <p><strong>Easier:</strong> {how.easier}</p>
+      <h2>Sets and reps</h2>
+      {
+        dose(id).map(([who, what]) => (
+          <p>
+            <strong>{who}:</strong> {what}
+          </p>
+        ))
+      }
+      <h2>Safety</h2>
+      <ul>{how.safety.map((s) => <li>{s}</li>)}</ul>
+      <h2>Swaps</h2>
+      {
+        swaps.length ? (
+          swaps.map(([setup, alts]) => (
+            <p>
+              <strong>{setup}:</strong>{' '}
+              {alts.map((a, i) => (
+                <>
+                  {i > 0 && ', '}
+                  <a href={`/exercises/${exerciseSlug(a)}/`}>{EXERCISES[a].name}</a>
+                </>
+              ))}
+            </p>
+          ))
+        ) : (
+          <p>Nothing in this list trains the same muscles the same way; use the easier or harder version above.</p>
+        )
+      }
+    </article>
+    <section class="cta glass">
+      <div>
+        <h2>Train it with a plan</h2>
+        <p>The free Fit app builds your program, tells you the weight and reps for every set, and swaps exercises to suit where you train. No account; your data stays on your phone.</p>
+      </div>
+      <a class="btn primary" href="/app/">Open the app</a>
+    </section>
+  </main>
+  <Footer />
+</Base>

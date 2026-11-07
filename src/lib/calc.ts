@@ -90,6 +90,8 @@ export function ffmi(kg: number, cm: number, bodyFat: number) {
 
 /** Epley, counting reps left in reserve as reps the set could have done. */
 export const oneRepMax = (kg: number, reps: number, rir = 0) => (reps + rir <= 1 ? kg : kg * (1 + (reps + rir) / 30));
+/** The load `oneRepMax` puts at this many reps with this many in reserve. */
+export const loadFor = (e1rm: number, reps: number, rir = 0) => (reps + rir <= 1 ? e1rm : e1rm / (1 + (reps + rir) / 30));
 
 /** Tanaka's estimate, closer than 220 - age across adult ages. */
 export const maxHeartRate = (age: number) => 208 - 0.7 * age;

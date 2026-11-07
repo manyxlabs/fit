@@ -1,5 +1,5 @@
 import { EXERCISES, type ExerciseId } from '../data/exercises';
-import { oneRepMax } from './calc';
+import { loadFor, oneRepMax } from './calc';
 
 export type SetLog = { kg: number; reps: number; rir: number };
 
@@ -10,16 +10,28 @@ export type SetLog = { kg: number; reps: number; rir: number };
  */
 export function nextTarget(id: ExerciseId, range: [number, number], last: SetLog[]) {
   const [low, high] = range;
-  if (!last.length) return { kg: undefined, reps: low, note: 'Pick a load you can lift for the bottom of the range with 2-3 reps to spare.' };
+  const step = EXERCISES[id].step;
+  if (!last.length) return { kg: undefined, reps: low, note: step ? 'Pick a load you can lift for the bottom of the range with 2-3 reps to spare.' : 'Start at the bottom of the range, with some left in the tank.' };
   const kg = Math.max(...last.map((s) => s.kg));
   const top = last.filter((s) => s.kg === kg);
-  const step = EXERCISES[id].step;
   if (top.every((s) => s.reps >= high)) {
     if (step === 0) return { kg, reps: high, note: 'Every set reached the top of the range. Move to a harder variation or slow the lowering to 4 seconds.' };
     return { kg: kg + step, reps: low, note: `Every set reached ${high}. Add ${step} kg.` };
   }
   const reps = Math.min(high, Math.min(...top.map((s) => s.reps)) + 1);
   return { kg, reps, note: `Same load, aim for ${reps}+ reps on each set.` };
+}
+
+/**
+ * Strength progression: the load for these reps and reps in reserve from the best estimated max
+ * of the last three sessions, so it rises as sets get easier and holds through one bad day.
+ */
+export function strengthTarget(id: ExerciseId, reps: number, rir: number, sessions: SetLog[][]) {
+  const e1rm = Math.max(0, ...sessions.slice(-3).map(bestE1rm));
+  if (!e1rm) return { kg: undefined, reps, note: `Work up in small jumps to a set of ${reps} with ${rir} reps to spare.` };
+  const step = EXERCISES[id].step || 0.5;
+  const kg = Math.round(loadFor(e1rm, reps, rir) / step) * step;
+  return { kg, reps, note: `About ${Math.round((kg / e1rm) * 100)}% of your estimated max of ${Math.round(e1rm)} kg.` };
 }
 
 export type Sickness = 'none' | 'aboveNeck' | 'belowNeck';
@@ -85,7 +97,8 @@ export function deloadDue(weeksSinceDeload: number, history: Map<ExerciseId, Set
   let tracked = 0;
   let stalled = 0;
   for (const [id, sessions] of history) {
-    if (!EXERCISES[id].compound || sessions.length < 6) continue;
+    // Bodyweight moves log 0 kg, so their estimated max never rises and would always count as stalled.
+    if (!EXERCISES[id].compound || !EXERCISES[id].step || sessions.length < 6) continue;
     tracked++;
     const before = Math.max(...sessions.slice(0, -3).map(bestE1rm));
     if (Math.max(...sessions.slice(-3).map(bestE1rm)) <= before) stalled++;
