@@ -691,7 +691,8 @@ details[open] summary {
   font-weight: 600;
 }
 
-.card > .btn {
+.card > .btn,
+form.stack > .btn {
   justify-self: start;
 }
 
