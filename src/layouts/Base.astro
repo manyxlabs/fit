@@ -1,7 +1,8 @@
 ---
-import '@fontsource-variable/inter';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
 // Every page has Latin text, even in Indian scripts (numbers, units, names), so fetching it early keeps the swap from shifting layout late.
-import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import geistLatin from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
 import { pageLocale } from '../i18n';
 import { FONTS, fontFace } from '../i18n/fonts';
 import { LOCALES, localePath, type Locale } from '../i18n/locales';
@@ -35,7 +36,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={geistLatin} as="font" type="font/woff2" crossorigin />
     {font && <link rel="preload" href={font.url} as="font" type="font/woff2" crossorigin />}
     {font && <style is:inline set:html={`${fontFace(font)}:root{--script:'${font.family}'}`} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -43,7 +44,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#050506" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
     {
       noindex ? (
         <meta name="robots" content="noindex" />
@@ -72,42 +73,104 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         </>
       )
     }
-    <!-- Before first paint, so a saved theme never flashes the other one. -->
+    <!-- Before first paint, so a saved or system theme never flashes the other one. As the portfolio's index.html,
+         but also following the system while nothing is saved, as the site did before. -->
     <script is:inline>
-      try {
-        const theme = localStorage.getItem('theme');
-        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-      } catch {}
+      var system = matchMedia('(prefers-color-scheme: dark)');
+      var applyTheme = function () {
+        try {
+          var theme = localStorage.getItem('theme');
+        } catch (e) {}
+        document.documentElement.classList.toggle('dark', theme ? theme === 'dark' : system.matches);
+      };
+      applyTheme();
+      system.addEventListener('change', applyTheme);
+      // Reveal hides content only where the script that shows it again will run.
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
     </script>
     {schema.map((o) => <script type="application/ld+json" set:html={ld(o)} />)}
   </head>
   <body>
+    <div class="backdrop" aria-hidden="true"><div class="bg-dots"></div></div>
     <slot />
+    <script>
+      // Reveal and the card spotlight, as the portfolio's ui.jsx and App.jsx do them with framer-motion.
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries)
+            if (e.isIntersecting) {
+              e.target.classList.add('in');
+              io.unobserve(e.target);
+            }
+        },
+        { threshold: 0.15 },
+      );
+      for (const el of document.querySelectorAll('.reveal')) io.observe(el);
+      let active: HTMLElement | null = null;
+      addEventListener('pointermove', (e: PointerEvent) => {
+        const el = (e.target as Element).closest<HTMLElement>('.spotlight');
+        if (active && active !== el) active.style.rotate = '';
+        active = el;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const px = e.clientX - r.left;
+        const py = e.clientY - r.top;
+        el.style.setProperty('--x', `${px}px`);
+        el.style.setProperty('--y', `${py}px`);
+        if (still) return;
+        const nx = (px / r.width) * 2 - 1;
+        const ny = (py / r.height) * 2 - 1;
+        const amount = Math.hypot(nx, ny);
+        el.style.rotate = amount ? `${-ny} ${nx} 0 ${amount * 2.5}deg` : '';
+      });
+    </script>
   </body>
 </html>
 
 <style is:global>
-  /* Each token holds both themes; color-scheme picks one, so the toggle only sets that. */
+  /* Tokens, glass, buttons and chips copied from the portfolio's src/index.css (Simple-Portfolio), the
+     source of truth for every Manyx product; change them there first. Colours are RGB channels, for rgb(var(--x) / alpha). */
   :root {
-    color-scheme: light dark;
-    --bg: light-dark(#f5f6f8, #050506);
-    --border: light-dark(#e4e4e8, #1f1f23);
-    --glass: light-dark(rgb(255 255 255 / 0.55), rgb(28 28 32 / 0.5));
-    --glass-edge: light-dark(rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.1));
-    --glass-shine: light-dark(rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.08));
-    --shadow: light-dark(rgb(15 23 42 / 0.12), rgb(0 0 0 / 0.55));
-    --text: light-dark(#1d1d1f, #f5f5f7);
-    --muted: light-dark(#6e6e73, #a1a1a6);
-    --accent: light-dark(#059669, #34d399);
-    --accent-soft: light-dark(rgb(5 150 105 / 0.1), rgb(52 211 153 / 0.12));
-    --on-accent: light-dark(#ffffff, #050506);
-  }
-
-  :root[data-theme='light'] {
+    --ink: 245 245 247;
+    --fg: 29 29 31;
+    --muted: 99 99 102;
+    --accent: 5 150 105;
+    --glass-bg: linear-gradient(180deg, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.25));
+    --glass-shadow: 0 8px 32px -8px rgb(0 0 0 / 0.12);
+    --rim-hi: rgb(255 255 255 / 0.95);
+    --rim-lo: rgb(0 0 0 / 0.07);
+    --dot: rgb(0 0 0 / 0.16);
+    --halo: rgb(255 255 255 / 0.9);
+    --spot: rgb(0 0 0 / 0.04);
+    /* Not in the portfolio: its light accent is 3.5:1 on --ink, under WCAG AA for text, so text in the
+       accent uses emerald 700 (5:1). Dots, bars, rings and the progress bar keep --accent. */
+    --accent-text: 4 120 87;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --mono: 'Geist Mono Variable', ui-monospace, monospace;
+    /* light-dark() below follows it, for the data colours the portfolio has no token for. */
     color-scheme: light;
   }
 
-  :root[data-theme='dark'] {
+  /* Indian scripts have no monospace face, and Geist Mono's wide spaces would gap their words, so
+     eyebrows and chips in those languages use the text faces. */
+  :root:not([lang='en']) {
+    --mono: 'Geist Variable';
+  }
+
+  .dark {
+    --ink: 5 5 6;
+    --fg: 245 245 247;
+    --muted: 161 161 166;
+    --accent: 52 211 153;
+    --glass-bg: linear-gradient(180deg, rgb(44 44 48 / 0.55), rgb(24 24 26 / 0.4));
+    --glass-shadow: 0 8px 32px -8px rgb(0 0 0 / 0.5);
+    --rim-hi: rgb(255 255 255 / 0.22);
+    --rim-lo: rgb(255 255 255 / 0.04);
+    --dot: rgb(255 255 255 / 0.09);
+    --halo: rgb(255 255 255 / 0.07);
+    --spot: rgb(255 255 255 / 0.06);
+    --accent-text: var(--accent);
     color-scheme: dark;
   }
 
@@ -130,39 +193,81 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   body {
     margin: 0;
     min-height: 100vh;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter Variable', var(--script, system-ui), system-ui, sans-serif;
+    background: rgb(var(--ink));
+    color: rgb(var(--fg));
+    font-family: 'Geist Variable', var(--script, system-ui), system-ui, sans-serif;
     font-size: 1rem;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* The colour field the glass frosts. Fixed, so panes shift tint as the page scrolls. */
-  body::before {
-    content: '';
+  @media (prefers-reduced-motion: no-preference) {
+    body {
+      transition:
+        color 0.3s,
+        background-color 0.3s;
+    }
+  }
+
+  ::selection {
+    background: rgb(var(--accent) / 0.4);
+    color: rgb(var(--fg));
+  }
+
+  /* The neutral texture every glass surface frosts; no colour, by the owner's rule. The portfolio's
+     .halo is a 100vmax element; painted as a background here, nothing reaches past a phone's edge. */
+  .backdrop {
     position: fixed;
     inset: 0;
     z-index: -1;
-    background:
-      radial-gradient(42rem 32rem at 12% 8%, light-dark(rgb(16 185 129 / 0.2), rgb(16 185 129 / 0.2)), transparent 70%),
-      radial-gradient(38rem 30rem at 90% 18%, light-dark(rgb(56 189 248 / 0.2), rgb(59 130 246 / 0.16)), transparent 70%),
-      radial-gradient(44rem 34rem at 55% 92%, light-dark(rgb(167 139 250 / 0.18), rgb(139 92 246 / 0.14)), transparent 70%);
+    overflow: hidden;
+    background: radial-gradient(closest-side, var(--halo), transparent) 50% -30vmax / 100vmax 60vmax no-repeat;
     pointer-events: none;
   }
 
-  .glass {
-    border: 1px solid var(--glass-edge);
-    background: var(--glass);
-    box-shadow:
-      inset 0 1px 0 var(--glass-shine),
-      0 12px 40px -18px var(--shadow);
-    -webkit-backdrop-filter: blur(20px) saturate(170%);
-    backdrop-filter: blur(20px) saturate(170%);
+  .bg-dots {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 30%, black, transparent);
+  }
+
+  /* An ancestor with opacity < 1 or a filter becomes the backdrop root and the blur goes flat, so
+     never put glass inside one; put .reveal on the glass element itself. :where() keeps a component's
+     own position (fixed, sticky) winning over this one. */
+  .glass,
+  .btn {
+    background: var(--glass-bg);
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+  }
+
+  :where(.glass, .btn) {
+    position: relative;
+  }
+
+  /* Specular rim: a 1px gradient border, brightest where light would catch the top-left and bottom-right edges. */
+  .glass::after,
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--rim-hi), var(--rim-lo) 35%, var(--rim-lo) 65%, var(--rim-hi));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 
   @media (prefers-reduced-transparency: reduce) {
-    .glass {
+    .glass,
+    .btn {
       background: light-dark(#ffffff, #141417);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
@@ -176,48 +281,170 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     margin: 0;
   }
 
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
   a {
     color: inherit;
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 3px;
-    border-radius: 4px;
+    outline: 2px solid rgb(var(--accent) / 0.7);
+    outline-offset: 2px;
   }
 
   .btn {
     display: inline-flex;
     align-items: center;
-    min-height: 44px;
-    padding-inline: 20px;
-    border: 1px solid var(--glass-edge);
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 0;
     border-radius: 999px;
-    background: var(--glass);
-    box-shadow: inset 0 1px 0 var(--glass-shine);
-    -webkit-backdrop-filter: blur(16px) saturate(170%);
-    backdrop-filter: blur(16px) saturate(170%);
-    font-size: 0.9375rem;
-    font-weight: 550;
+    color: rgb(var(--fg));
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
     text-decoration: none;
     overflow-wrap: anywhere;
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      background-color 0.2s,
+      scale 0.2s;
   }
 
   .btn:hover {
-    border-color: var(--muted);
+    background-color: rgb(var(--fg) / 0.1);
   }
 
+  .btn:active {
+    scale: 0.95;
+  }
+
+  /* Monochrome, never the accent: the owner wants colour kept to small marks. */
   .btn.primary {
-    border-color: var(--accent);
-    background: var(--accent);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.35),
-      0 8px 24px -10px var(--accent);
-    color: var(--on-accent);
+    background: rgb(var(--fg));
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    color: rgb(var(--ink));
+  }
+
+  .btn.primary::after {
+    content: none;
   }
 
   .btn.primary:hover {
-    filter: brightness(1.08);
+    background: rgb(var(--fg) / 0.85);
+  }
+
+  /* Glass on glass vanishes in the light theme, so inside a card a secondary button is the portfolio's
+     in-card link style instead: a hairline on a faint tint. */
+  .glass .btn:not(.primary) {
+    background: rgb(var(--fg) / 0.05);
+    box-shadow: inset 0 0 0 1px rgb(var(--fg) / 0.1);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .glass .btn:not(.primary)::after {
+    content: none;
+  }
+
+  .glass .btn:not(.primary):hover {
+    background: rgb(var(--fg) / 0.1);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .chip {
+    padding: 4px 12px;
+    border: 1px solid rgb(var(--fg) / 0.1);
+    border-radius: 999px;
+    background: rgb(var(--fg) / 0.05);
+    color: rgb(var(--fg) / 0.8);
+    font-family: var(--mono), var(--script, system-ui);
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  /* A monochrome sheen; symmetric stops with a 200% size make the shimmer loop seamless. */
+  .text-sheen {
+    background: linear-gradient(90deg, rgb(var(--fg)), rgb(var(--muted)), rgb(var(--fg))) 0 50% / 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .text-sheen {
+      animation: shimmer 6s linear infinite;
+    }
+  }
+
+  @keyframes shimmer {
+    to {
+      background-position: 200% 50%;
+    }
+  }
+
+  /* .motion is set in <head> and .in by the observer in <body>; with reduced motion nothing is hidden. */
+  .motion .reveal:not(.in) {
+    opacity: 0;
+    translate: 0 16px;
+    scale: 0.98;
+  }
+
+  .reveal {
+    --delay: calc(min(var(--i, 0), 6) * 0.05s);
+    transition:
+      opacity 0.45s var(--ease) var(--delay),
+      translate 0.45s var(--ease) var(--delay),
+      scale 0.45s var(--ease) var(--delay);
+  }
+
+  /* --x and --y come from the pointer listener in <body>. backdrop-filter makes .glass a stacking
+     context, so z-index -1 keeps the glow above the card's background but under its content. */
+  .spotlight {
+    position: relative;
+    transition: rotate 0.4s var(--ease);
+  }
+
+  .reveal.spotlight {
+    transition:
+      opacity 0.45s var(--ease) var(--delay),
+      translate 0.45s var(--ease) var(--delay),
+      scale 0.45s var(--ease) var(--delay),
+      rotate 0.4s var(--ease);
+  }
+
+  :has(> .spotlight) {
+    perspective: 1200px;
+  }
+
+  .spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(350px circle at var(--x) var(--y), var(--spot), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .spotlight:hover::before {
+    opacity: 1;
   }
 
   /* Component display rules would otherwise override the hidden attribute. */
@@ -238,61 +465,26 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     }
   }
 
-  /* The building blocks every tool's form is made of. */
-  .tool {
-    display: grid;
-    gap: 16px;
-    margin-top: 32px;
-  }
-
-  .panel {
-    display: grid;
-    gap: 14px;
-    min-width: 0;
-    padding: 20px;
-    border-radius: 20px;
-  }
-
-  .panel > h2 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.0625rem;
-    font-weight: 620;
-  }
-
-  .panel > h2 > span {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 999px;
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-size: 0.8125rem;
-  }
-
   .drop {
     position: relative;
     display: grid;
     gap: 4px;
     justify-items: center;
     padding: 28px 16px;
-    border: 1px dashed color-mix(in srgb, var(--muted) 45%, transparent);
+    border: 1px dashed rgb(var(--muted) / 0.45);
     border-radius: 12px;
-    color: var(--muted);
+    color: rgb(var(--muted));
     text-align: center;
     cursor: pointer;
   }
 
   .drop strong {
-    color: var(--accent);
+    color: rgb(var(--fg));
   }
 
   .drop:hover,
   .drop:focus-within {
-    border-color: var(--accent);
+    border-color: rgb(var(--muted));
   }
 
   .drop input {
@@ -319,19 +511,21 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     gap: 6px;
     min-width: 0;
     font-size: 0.875rem;
-    font-weight: 550;
+    font-weight: 500;
   }
 
+  /* Inputs stay opaque on the glass, so what is typed reads like paper. */
   .field :is(select, input:not([type='range'], [type='checkbox'], [type='radio']), textarea) {
     width: 100%;
     min-height: 44px;
     padding: 0 12px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--bg);
-    color: var(--text);
+    border: 1px solid rgb(var(--fg) / 0.15);
+    border-radius: 12px;
+    background: rgb(var(--ink));
+    color: rgb(var(--fg));
     font: inherit;
     font-weight: 400;
+    font-variant-numeric: tabular-nums;
   }
 
   .field textarea {
@@ -339,9 +533,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     resize: vertical;
   }
 
+  input[type='range'],
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: rgb(var(--fg));
+  }
+
   input[type='range'] {
     width: 100%;
-    accent-color: var(--accent);
   }
 
   .check {
@@ -355,57 +554,20 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     flex: none;
     width: 18px;
     height: 18px;
-    accent-color: var(--accent);
   }
 
   .hint {
-    color: var(--muted);
+    color: rgb(var(--muted));
     font-size: 0.875rem;
+    line-height: 1.625;
   }
 
   .hint a {
-    color: var(--accent);
+    color: rgb(var(--accent-text));
   }
 
   .error {
-    color: light-dark(#dc2626, #f87171);
+    color: light-dark(#b91c1c, #f87171);
     font-size: 0.875rem;
-  }
-
-  /* A checkerboard, so a preview's own white edges stay visible. */
-  .stage {
-    display: grid;
-    place-items: center;
-    padding: 16px;
-    border-radius: 12px;
-    background: repeating-conic-gradient(var(--border) 0 25%, transparent 0 50%) 0 0 / 16px 16px;
-  }
-
-  .result {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .result p {
-    font-size: 0.9375rem;
-    font-variant-numeric: tabular-nums;
-  }
-
-  button.btn {
-    color: inherit;
-    font-family: inherit;
-    cursor: pointer;
-  }
-
-  button.btn.primary {
-    color: var(--on-accent);
-  }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 </style>

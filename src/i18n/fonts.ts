@@ -1,4 +1,4 @@
-// Inter has no Indic glyphs, so each language's script gets a Noto Sans face of its own, declared
+// Geist has no Indic glyphs, so each language's script gets a Noto Sans face of its own, declared
 // only on that language's pages and only for its script's characters, so no page fetches another's.
 import bengali from '@fontsource-variable/noto-sans-bengali/files/noto-sans-bengali-bengali-wght-normal.woff2?url';
 import bengaliRange from '@fontsource-variable/noto-sans-bengali/unicode.json';
