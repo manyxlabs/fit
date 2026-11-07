@@ -8,7 +8,9 @@
     "preview": "astro preview",
     "check": "astro check",
     "test:e2e": "playwright test",
-    "foods": "node scripts/foods.mjs"
+    "foods": "node scripts/foods.mjs",
+    "icons": "node scripts/icons.mjs",
+    "og": "astro build && node scripts/og.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.1",

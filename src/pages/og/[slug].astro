@@ -1,0 +1,231 @@
+---
+// The 1200 x 630 share card of every page, which `npm run og` screenshots into public/og/.
+// Built only in dev: the PNGs are what is published.
+import '@fontsource-variable/inter';
+import { CALCULATORS } from '../../calcs/list';
+import { ACTIVITIES } from '../../data/activities';
+import { GUIDES } from '../../guides';
+import * as c from '../../lib/calc';
+import { fmt } from '../../lib/fmt';
+import { markSvg } from '../../mark';
+import { BRAND } from '../../site';
+
+type Card = { eyebrow: string; title: string; panel: string; rows: [label: string, value: string][] };
+
+export function getStaticPaths() {
+  if (!import.meta.env.DEV) return [];
+
+  // The worked example the guides use: a man of 25, 175 cm, 75 kg, moderately active.
+  const [kg, cm, age] = [75, 175, 25];
+  const tdee = c.bmr({ sex: 'male', kg, cm, age }) * c.activityFactor('moderate');
+  const at = (rate: number) => c.calorieTarget(tdee, kg, rate, 'male').kcal;
+  const m = c.macros({ kcal: tdee, kg, cm, goal: 'maintain' });
+  const [lo, hi] = c.healthyWeight(cm, true);
+  const fat = c.navyBodyFat({ sex: 'male', cm, neck: 38, waist: 84 })!;
+  const zones = c.heartRateZones(age, 60);
+  const example = 'Man, 25, 175 cm, 75 kg';
+  const calcCards: Record<string, Card['rows']> = {
+    bmi: [['75 kg at 175 cm', `BMI ${fmt(c.bmi(kg, cm), 1)}`], ['Asian cut-offs', c.bmiBand(c.bmi(kg, cm), true)], ['Healthy weight', `${fmt(lo, 1)}-${fmt(hi, 1)} kg`]],
+    tdee: [['Resting (BMR)', `${fmt(c.bmr({ sex: 'male', kg, cm, age }))} kcal`], ['Maintenance', `${fmt(tdee)} kcal`], ['Losing 0.5% a week', `${fmt(at(c.RATES.lose.default))} kcal`], ['Lean gain', `${fmt(at(c.RATES.gain.default))} kcal`]],
+    macros: [['Calories', `${fmt(tdee)} kcal`], ['Protein', `${fmt(m.protein)} g`], ['Fat', `${fmt(m.fat)} g`], ['Carbs', `${fmt(m.carbs)} g`]],
+    protein: (['lose', 'recomp', 'gain', 'maintain'] as const).map((goal) => [{ lose: 'Losing fat', recomp: 'Recomposition', gain: 'Gaining', maintain: 'Maintaining' }[goal], `${fmt(c.macros({ kcal: tdee, kg, cm, goal }).protein)} g a day`]),
+    'body-fat': [['Neck 38 cm, waist 84 cm', `${fmt(fat, 1)}% body fat`], ['Lean mass', `${fmt(kg * (1 - fat / 100), 1)} kg`], ['Fat-free mass index', fmt(c.ffmi(kg, cm, fat), 1)]],
+    'one-rep-max': [['80 kg × 8, 2 in reserve', `${fmt(c.oneRepMax(80, 8, 2), 1)} kg max`], ['Formula', 'Epley, counting reps in reserve'], ['Most accurate from', 'Sets of 3-10 reps']],
+    'heart-rate-zones': [['Age 25, resting 60', `Max ${fmt(c.maxHeartRate(age))} bpm`], ...zones.slice(1, 4).map((z): [string, string] => [`Zone ${z.zone}, ${z.name.toLowerCase()}`, `${z.from}-${z.to} bpm`])],
+    water: [['75 kg', `${fmt(c.waterMl(kg) / 1000, 1)} litres a day`], ['Each hour of exercise', '+0.5-1 litre'], ['Simplest check', 'Pale-yellow urine']],
+    'calories-burned': [0, 2, 10, 8].map((i) => [`${ACTIVITIES[i][0]}, 30 min`, `${fmt(c.metKcal(ACTIVITIES[i][1], kg, 30))} kcal`]),
+  };
+
+  const cards: Record<string, Card> = {
+    home: {
+      eyebrow: 'Free fitness app',
+      title: 'Everything for your fitness, in one free app',
+      panel: 'In the app',
+      rows: [['Calories and macros', 'Measured from your own logs'], ['Indian food', 'Veg and non-veg, in rotis and katoris'], ['Training', 'Gym, home or bodyweight'], ['Your data', 'Stays on your phone']],
+    },
+    app: {
+      eyebrow: 'Free app',
+      title: 'Your daily plan for food, training and recovery',
+      panel: 'Every day',
+      rows: [['Today', 'Calories left, sleep, readiness'], ['Food', 'Indian dishes in household units'], ['Train', 'The next weight and reps'], ['Progress', 'Weight trend, photos, strength']],
+    },
+    calculators: { eyebrow: 'Free calculators', title: 'Fitness calculators that suit Indians', panel: example, rows: [calcCards.bmi[0], calcCards.tdee[1], calcCards.macros[1], calcCards.water[0]] },
+    guides: { eyebrow: 'Guides', title: 'Plain guides to training, food and recovery', panel: 'Start with', rows: GUIDES.slice(0, 4).map((g) => ['', g.title]) },
+    privacy: { eyebrow: 'Privacy', title: 'Your health data stays on your phone', panel: 'Fit has', rows: [['Accounts', 'None'], ['Tracking and ads', 'None'], ['Your data lives', 'In your browser only'], ['Source code', 'Open, MIT licence']] },
+    ...Object.fromEntries(
+      CALCULATORS.map((x) => {
+        if (!calcCards[x.slug]) throw new Error(`No share card for ${x.slug}`);
+        return [`calculator-${x.slug}`, { eyebrow: 'Free calculator', title: x.title, panel: x.slug === 'one-rep-max' || x.slug === 'heart-rate-zones' ? 'Example' : example, rows: calcCards[x.slug] }];
+      }),
+    ),
+    ...Object.fromEntries(GUIDES.map((g) => [`guide-${g.slug}`, { eyebrow: 'Guide', title: g.title, panel: 'In this guide', rows: g.headings.filter((h) => h.depth === 2).slice(0, 4).map((h) => ['', h.text]) }])),
+  };
+  return Object.entries(cards).map(([slug, card]) => ({ params: { slug }, props: { card } }));
+}
+
+const { card } = Astro.props as { card: Card };
+// A trailing parenthetical, as in 'Body fat calculator (US Navy tape method)', would break mid-phrase at 58px.
+const [title, aside] = card.title.split(/ \((.+)\)$/);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>{card.title}</title>
+  </head>
+  <body>
+    <div class="card">
+      <div class="left">
+        <p class="brand"><Fragment set:html={markSvg({ ink: '#1d1d1f', accent: '#059669', size: 44, pad: -2 })} />{BRAND}</p>
+        <div>
+          <p class="eyebrow">{card.eyebrow}</p>
+          <h1>{title}{aside && <span>{aside}</span>}</h1>
+        </div>
+        <p class="foot">Free · No account · Your data stays on your phone</p>
+      </div>
+      <div class="panel">
+        <p class="label">{card.panel}</p>
+        <dl>
+          {
+            card.rows.map(([label, value]) => (
+              <div>
+                {label && <dt>{label}</dt>}
+                <dd>{value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style>
+  html,
+  body {
+    margin: 0;
+  }
+
+  body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background:
+      radial-gradient(42rem 32rem at 8% 0%, rgb(16 185 129 / 0.24), transparent 70%),
+      radial-gradient(38rem 30rem at 100% 10%, rgb(56 189 248 / 0.22), transparent 70%),
+      radial-gradient(44rem 34rem at 60% 110%, rgb(167 139 250 / 0.2), transparent 70%),
+      #f5f6f8;
+    color: #1d1d1f;
+    font-family: 'Inter Variable', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .card {
+    display: grid;
+    grid-template-columns: 1fr 460px;
+    gap: 56px;
+    align-items: center;
+    box-sizing: border-box;
+    height: 100%;
+    padding: 64px 72px;
+  }
+
+  .left {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    align-items: center;
+    height: 100%;
+  }
+
+  p,
+  h1,
+  dl,
+  dd {
+    margin: 0;
+  }
+
+  .brand {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    font-size: 30px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .eyebrow,
+  .label {
+    color: #047857;
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin-top: 14px;
+    font-size: 58px;
+    font-weight: 720;
+    line-height: 1.06;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  h1 span {
+    display: block;
+    margin-top: 10px;
+    color: #57575c;
+    font-size: 36px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .foot {
+    color: #57575c;
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  .panel {
+    display: grid;
+    gap: 22px;
+    padding: 32px;
+    border: 1px solid rgb(255 255 255 / 0.9);
+    border-radius: 28px;
+    background: rgb(255 255 255 / 0.62);
+    box-shadow:
+      inset 0 1px 0 #fff,
+      0 24px 60px -28px rgb(15 23 42 / 0.35);
+  }
+
+  .label {
+    font-size: 17px;
+  }
+
+  dl {
+    display: grid;
+    gap: 18px;
+  }
+
+  dl div + div {
+    padding-top: 18px;
+    border-top: 1px solid #e4e4e8;
+  }
+
+  dt {
+    color: #57575c;
+    font-size: 19px;
+    font-weight: 550;
+  }
+
+  dd {
+    margin-top: 2px;
+    font-size: 25px;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+</style>

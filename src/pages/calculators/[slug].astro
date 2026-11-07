@@ -12,7 +12,7 @@ const { c } = Astro.props;
 const others = CALCULATORS.filter((o) => o.slug !== c.slug);
 ---
 
-<Base title={c.title} description={c.description} schema={[{ '@type': 'WebApplication', name: c.title, applicationCategory: 'HealthApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' } }]}>
+<Base og={`calculator-${c.slug}`} title={c.title} description={c.description} schema={[{ '@type': 'WebApplication', name: c.title, applicationCategory: 'HealthApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' } }]}>
   <Header />
   <main class="wrap page">
     <p class="crumbs"><a href="/calculators/">Calculators</a></p>
