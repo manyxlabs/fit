@@ -9,7 +9,7 @@ const ids = Object.keys(EXERCISES) as ExerciseId[];
 const groups = (Object.keys(MUSCLES) as Muscle[]).map((m) => [m, ids.filter((id) => EXERCISES[id].primary[0] === m)] as const).filter(([, list]) => list.length);
 ---
 
-<Base title="Exercise guides" description={`How to do ${ids.length} gym, home and bodyweight exercises: muscles worked, step-by-step form, common mistakes, sets and reps, and swaps.`}>
+<Base og="exercises" title="Exercise guides" description={`How to do ${ids.length} gym, home and bodyweight exercises: muscles worked, step-by-step form, common mistakes, sets and reps, and swaps.`}>
   <Header />
   <main class="wrap page">
     <h1>Exercise guides</h1>
