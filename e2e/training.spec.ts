@@ -110,7 +110,8 @@ test('at home, bar moves are offered only with a bar, and bodyweight moves progr
   await tab(page, 'Train').click();
   const plan = page.getByRole('region', { name: /^Your program/ });
   await plan.getByText('Days and exercises').click();
-  await expect(plan.getByRole('combobox', { name: 'Swap Inverted row' }).first()).toBeVisible();
+  // Nothing else on the bodyweight list trains the upper back, so the inverted row has no swaps and shows as its guide's link.
+  await expect(plan.getByRole('link', { name: 'Inverted row' }).first()).toBeVisible();
   await expect(plan).not.toContainText(/Pull-up|Chin-up|\bDip\b|Hanging leg raise/);
   await page.screenshot({ path: 'test-results/artifacts/program-no-bar.png', fullPage: true });
 
