@@ -57,17 +57,18 @@ test('reminders: the server keeps only a schedule, sends an encrypted generic pu
   page.on('request', (r) => void (r.url().endsWith('/api/push') && r.method() === 'PUT' && puts.push(r.postData()!)));
   const { publicKey } = (await (await request.get('/api/push')).json()) as { publicKey: string };
 
-  // The next whole minute in India with time to set it up, and dinner a minute after.
-  let at = Math.ceil(Date.now() / 60_000) * 60_000;
-  if (at - Date.now() < 20_000) at += 60_000;
-  const lunch = hhmm(at);
-  const dinner = hhmm(at + 60_000);
-
   await onboard(page);
   await tab(page, 'More').click();
   const card = page.getByRole('region', { name: 'Reminders' });
   await expect(card.getByText('iOS 16.4 or later')).toBeVisible();
   for (const name of ['Morning weigh-in', 'Log breakfast', 'Workout days']) await card.getByRole('checkbox', { name }).uncheck();
+
+  // Picked only now, as onboarding on a busy machine can outlast any margin: a time already past
+  // when the schedule is saved is rightly due tomorrow. Dinner is a minute after lunch.
+  let at = Math.ceil(Date.now() / 60_000) * 60_000;
+  if (at - Date.now() < 20_000) at += 60_000;
+  const lunch = hhmm(at);
+  const dinner = hhmm(at + 60_000);
   await card.getByLabel('Lunch time').fill(lunch);
   await card.getByLabel('Dinner time').fill(dinner);
   await card.getByRole('button', { name: 'Turn on reminders' }).click();
