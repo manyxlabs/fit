@@ -8,15 +8,14 @@
 
 .page h1 {
   font-size: clamp(1.875rem, 5vw, 2.75rem);
-  font-weight: 700;
-  letter-spacing: -0.025em;
   line-height: 1.15;
 }
 
 .lede {
-  max-width: 44rem;
-  color: var(--muted);
+  max-width: 42rem;
+  color: rgb(var(--muted));
   font-size: 1.125rem;
+  line-height: 1.625;
 }
 
 .crumbs {
@@ -26,19 +25,28 @@
 
 .crumbs a,
 .prose a,
-.links a,
-.more-links a,
 .next a {
-  color: var(--accent);
+  color: rgb(var(--accent-text));
   text-decoration: none;
 }
 
 .crumbs a:hover,
 .prose a:hover,
-.links a:hover,
-.more-links a:hover,
 .next a:hover {
   text-decoration: underline;
+}
+
+/* Lists of links are navigation, not body text, so they stay neutral; the accent is for small marks. */
+.links a,
+.more-links a {
+  color: rgb(var(--muted));
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.links a:hover,
+.more-links a:hover {
+  color: rgb(var(--fg));
 }
 
 .row {
@@ -49,8 +57,53 @@
 
 .hero {
   display: grid;
-  gap: 16px;
-  padding-block: 32px 8px;
+  justify-items: start;
+  gap: 24px;
+  padding-block: 48px 24px;
+}
+
+/* The portfolio hero's size, scaled down where Indian scripts need the room. */
+.hero h1 {
+  max-width: 52rem;
+  font-size: clamp(2.5rem, 7vw, 4rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  color: rgb(var(--muted));
+  font-size: 0.875rem;
+}
+
+.live {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgb(var(--accent));
+  box-shadow: 0 0 10px rgb(var(--accent));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .live {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.hero .row {
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .features,
@@ -63,35 +116,38 @@
   list-style: none;
 }
 
-.features li {
+.features li,
+.tile {
   display: grid;
   align-content: start;
-  gap: 6px;
-  padding: 20px;
-  border-radius: 20px;
+  gap: 8px;
+  height: 100%;
+  padding: 24px;
+  border-radius: 24px;
 }
 
-.features h2 {
-  font-size: 1.0625rem;
+@media (min-width: 640px) {
+  .features li,
+  .tile {
+    padding: 32px;
+  }
+}
+
+.features h2,
+.tile strong {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 
 .features p,
 .tile span {
-  color: var(--muted);
-  font-size: 0.9375rem;
+  color: rgb(var(--muted));
+  line-height: 1.625;
 }
 
 .tile {
-  display: grid;
-  gap: 4px;
-  height: 100%;
-  padding: 18px 20px;
-  border-radius: 20px;
   text-decoration: none;
-}
-
-.tile:hover {
-  border-color: var(--accent);
 }
 
 .split {
@@ -100,10 +156,19 @@
   gap: 24px;
 }
 
-.split h2,
 .more-links h2 {
   margin-bottom: 8px;
   font-size: 1.25rem;
+}
+
+/* The portfolio's section eyebrow. */
+.split h2 {
+  margin-bottom: 12px;
+  color: rgb(var(--accent-text));
+  font-family: var(--mono), var(--script, system-ui);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .links,
@@ -124,8 +189,14 @@
 .calc {
   display: grid;
   gap: 16px;
-  padding: 20px;
-  border-radius: 20px;
+  padding: 24px;
+  border-radius: 24px;
+}
+
+@media (min-width: 640px) {
+  .calc {
+    padding: 32px;
+  }
 }
 
 .calc .field.wide {
@@ -137,7 +208,7 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
   gap: 12px;
   padding-top: 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgb(var(--fg) / 0.1);
 }
 
 .calc-out > .hint,
@@ -152,8 +223,9 @@
 
 .stat strong {
   font-size: 1.5rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
 }
 
 .calc-table {
@@ -164,26 +236,35 @@
 
 .calc-table :is(th, td) {
   padding: 8px 4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgb(var(--fg) / 0.1);
   text-align: left;
 }
 
 .calc-table th {
-  color: var(--muted);
+  color: rgb(var(--muted));
   font-size: 0.8125rem;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .prose {
   display: grid;
   gap: 14px;
   max-width: 44rem;
+  line-height: 1.7;
+}
+
+.prose :is(p, li) {
+  color: rgb(var(--muted));
+}
+
+.prose strong {
+  color: rgb(var(--fg));
+  font-weight: 600;
 }
 
 .prose h2 {
   margin-top: 16px;
-  font-size: 1.375rem;
-  letter-spacing: -0.01em;
+  font-size: 1.5rem;
 }
 
 .prose h3 {
@@ -208,7 +289,7 @@
 
 .prose :is(th, td) {
   padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgb(var(--fg) / 0.1);
   text-align: left;
   vertical-align: top;
 }
@@ -223,8 +304,14 @@
   gap: 16px;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
-  border-radius: 20px;
+  padding: 24px;
+  border-radius: 24px;
+}
+
+@media (min-width: 640px) {
+  .cta {
+    padding: 32px;
+  }
 }
 
 .cta div {
@@ -238,8 +325,8 @@
 }
 
 .cta p {
-  color: var(--muted);
-  font-size: 0.9375rem;
+  color: rgb(var(--muted));
+  line-height: 1.625;
 }
 
 .ex-top {
@@ -257,7 +344,7 @@
 }
 
 .facts dt {
-  color: var(--muted);
+  color: rgb(var(--muted));
   font-size: 0.875rem;
 }
 
@@ -274,4 +361,10 @@
 .ex-groups h2 {
   margin-bottom: 8px;
   font-size: 1.125rem;
+}
+
+/* A block of paragraphs inside prose, such as one marked with another language, keeps the prose rhythm. */
+.prose > div {
+  display: grid;
+  gap: inherit;
 }
