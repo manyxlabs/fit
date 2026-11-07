@@ -1,7 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+/** Typing before the island hydrates is lost when React takes over the inputs. */
+async function calculator(page: Page, slug: string) {
+  await page.goto(`/calculators/${slug}/`);
+  await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
+}
 
 test('the BMI calculator uses the Asian cut-offs by default', async ({ page }) => {
-  await page.goto('/calculators/bmi/');
+  await calculator(page, 'bmi');
   await page.getByLabel('Weight (kg)').fill('75');
   await page.getByLabel('Height (cm)').fill('175');
   await expect(page.locator('.stat').first()).toContainText('24.5');
@@ -11,7 +17,7 @@ test('the BMI calculator uses the Asian cut-offs by default', async ({ page }) =
 });
 
 test('the TDEE calculator matches the worked example', async ({ page }) => {
-  await page.goto('/calculators/tdee/');
+  await calculator(page, 'tdee');
   await page.getByLabel('Age', { exact: true }).fill('25');
   await page.getByLabel('Weight (kg)').fill('75');
   await page.getByLabel('Height (cm)').fill('175');
