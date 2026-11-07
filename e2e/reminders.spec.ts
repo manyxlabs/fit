@@ -72,7 +72,8 @@ test('reminders: the server keeps only a schedule, sends an encrypted generic pu
   await card.getByLabel('Lunch time').fill(lunch);
   await card.getByLabel('Dinner time').fill(dinner);
   await card.getByRole('button', { name: 'Turn on reminders' }).click();
-  await expect(card.getByRole('status')).toHaveText('Reminders are on.');
+  // Subscribing waits on the service worker and two round trips to the Worker's Durable Object, which on a busy Pi outlast the default 5s.
+  await expect(card.getByRole('status')).toHaveText('Reminders are on.', { timeout: 20_000 });
   await card.screenshot({ path: `${ARTIFACTS}/reminders-on.png` });
 
   await test.step('The server is told only where to send, the timezone, the language and the times', async () => {

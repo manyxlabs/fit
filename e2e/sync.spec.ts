@@ -86,7 +86,8 @@ test('two devices pair, stay in step through edits, deletions and time offline, 
     await expect(b.page.getByRole('heading', { name: 'Sync with your other device' })).toBeVisible();
     await b.page.screenshot({ path: `${ARTIFACTS}/sync-join.png` });
     await b.page.getByRole('button', { name: 'Start syncing' }).click();
-    await expect(b.page).toHaveURL(/\/app\/#more$/);
+    // Joining pulls and decrypts the whole room from the Durable Object, which on a busy Pi outlasts the default 5s.
+    await expect(b.page).toHaveURL(/\/app\/#more$/, { timeout: 20_000 });
     await synced(b.page);
     await tab(b.page, 'Today').click();
     await expect(b.page.getByRole('region', { name: 'Calories' }).getByText('2,672 kcal left')).toBeVisible();

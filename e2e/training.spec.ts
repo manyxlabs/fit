@@ -102,6 +102,8 @@ test('the strength program prescribes the next load from the logged estimated ma
 });
 
 test('at home, bar moves are offered only with a bar, and bodyweight moves progress by reps and harder variations', async ({ page }) => {
+  // Two logged workouts and a change of setup: over 30s when the suite shares a busy Pi.
+  test.setTimeout(60_000);
   await onboard(page);
   await tab(page, 'More').click();
   await page.getByLabel('Where you train').selectOption({ label: 'Bodyweight only' });
