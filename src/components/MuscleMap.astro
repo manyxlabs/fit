@@ -83,8 +83,8 @@ const title = secondary.length ? fill(t.exercises.mapAssist, { main: names(prima
 <style>
   .muscle-map {
     --base: light-dark(#e2e4e9, #2a2a30);
-    --main: var(--accent);
-    --assist: color-mix(in srgb, var(--accent) 40%, var(--base));
+    --main: rgb(var(--accent));
+    --assist: color-mix(in srgb, rgb(var(--accent)) 40%, var(--base));
     display: grid;
     gap: 8px;
     justify-items: center;
@@ -112,7 +112,7 @@ const title = secondary.length ? fill(t.exercises.mapAssist, { main: names(prima
   }
 
   text {
-    fill: var(--muted);
+    fill: rgb(var(--muted));
     font-size: 9px;
     text-anchor: middle;
   }
@@ -120,7 +120,7 @@ const title = secondary.length ? fill(t.exercises.mapAssist, { main: names(prima
   figcaption {
     display: flex;
     gap: 16px;
-    color: var(--muted);
+    color: rgb(var(--muted));
     font-size: 0.875rem;
   }
 
