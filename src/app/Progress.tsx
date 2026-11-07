@@ -4,6 +4,7 @@ import { bmi, bmiBand, ffmi, healthyWeight, navyBodyFat, trend } from '../lib/ca
 import { bestE1rm } from '../lib/coach';
 import { addDays, db, today, type Measurement, type Profile } from './db';
 import { kcalOf, targets, useAsync, useBump } from './hooks';
+import { Photos } from './Photos';
 import { Card, fmt } from './ui';
 
 export function Progress({ profile }: { profile: Profile }) {
@@ -21,10 +22,11 @@ export function Progress({ profile }: { profile: Profile }) {
     ]);
     // Runs and yoga from a program count as sessions; other cardio does not.
     const planned = sessions.filter((a) => a.day).length;
-    return { t, weights, m: measurements.at(-1), workouts, food, days, week, planned };
+    // Health-app imports add body fat on its own, so the tape and the scale are looked up apart.
+    return { t, weights, m: measurements.findLast((x) => x.waist), scale: measurements.findLast((x) => x.bodyFat), workouts, food, days, week, planned };
   }, [profile]);
   if (!data?.t) return null;
-  const { t, weights, m, workouts, food, days, week, planned } = data;
+  const { t, weights, m, scale, workouts, food, days, week, planned } = data;
   const tr = trend(weights);
   const weekAgo = tr.findLast((p) => p.date <= addDays(today(), -7));
   const change = weekAgo ? tr.at(-1)!.trend - weekAgo.trend : undefined;
@@ -105,21 +107,29 @@ export function Progress({ profile }: { profile: Profile }) {
             </li>
           )}
           {fat !== undefined && (
-            <>
-              <li>
-                <span>Body fat (tape estimate)</span>
-                <span className="num">{fmt(fat, 1)}%</span>
-              </li>
-              <li>
-                <span>Fat-free mass index</span>
-                <span className="num">{fmt(ffmi(t.kg, profile.cm, fat), 1)}</span>
-              </li>
-            </>
+            <li>
+              <span>Body fat (tape estimate)</span>
+              <span className="num">{fmt(fat, 1)}%</span>
+            </li>
+          )}
+          {scale?.bodyFat !== undefined && (
+            <li>
+              <span>Body fat (scale, {new Date(`${scale.date}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })})</span>
+              <span className="num">{fmt(scale.bodyFat, 1)}%</span>
+            </li>
+          )}
+          {(fat ?? scale?.bodyFat) !== undefined && (
+            <li>
+              <span>Fat-free mass index</span>
+              <span className="num">{fmt(ffmi(t.kg, profile.cm, (fat ?? scale?.bodyFat)!), 1)}</span>
+            </li>
           )}
         </ul>
         <p className="hint">BMI cannot tell muscle from fat; a lean lifter can read as overweight. Waist and body fat say more.</p>
         <Measurements sex={profile.sex} last={m} />
       </Card>
+
+      <Photos />
 
       <Strength workouts={workouts} />
     </>
@@ -179,12 +189,14 @@ function Measurements({ sex, last }: { sex: Profile['sex']; last?: Measurement }
   async function save(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const m: Measurement = { date: today() };
+    const d = await db;
+    // Keeps a scale reading imported for the same day.
+    const m: Measurement = { date: today(), bodyFat: (await d.get('measurements', today()))?.bodyFat };
     for (const k of ['waist', 'neck', 'hip', 'chest', 'arm', 'thigh'] as const) {
       const v = Number(f.get(k));
       if (v > 0) m[k] = v;
     }
-    await (await db).put('measurements', m);
+    await d.put('measurements', m);
     setOpen(false);
     bump();
   }

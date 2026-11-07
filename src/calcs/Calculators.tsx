@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { ACTIVITIES } from '../data/activities';
+import { fmt } from '../lib/fmt';
 import {
   ACTIVITY,
   activityFactor,
@@ -23,7 +24,6 @@ import {
   type Sex,
 } from '../lib/calc';
 
-const fmt = (n: number, d = 0) => n.toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d });
 
 /** A number field that keeps what is typed and reports NaN while it is empty or partial. */
 function Num(p: { label: string; value: number; set: (n: number) => void; min: number; max: number; step?: number }) {

@@ -11,7 +11,7 @@ const { g, next } = Astro.props;
 const { Content } = g;
 ---
 
-<Base title={g.title} description={g.description} schema={[{ '@type': 'Article', headline: g.title, description: g.description, url: `${SITE}/guides/${g.slug}/`, publisher: { '@type': 'Organization', name: 'Manyx Labs' } }]}>
+<Base og={`guide-${g.slug}`} title={g.title} description={g.description} schema={[{ '@type': 'Article', headline: g.title, description: g.description, url: `${SITE}/guides/${g.slug}/`, publisher: { '@type': 'Organization', name: 'Manyx Labs' } }]}>
   <Header />
   <main class="wrap page">
     <p class="crumbs"><a href="/guides/">Guides</a></p>
