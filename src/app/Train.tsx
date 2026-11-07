@@ -245,7 +245,7 @@ function Session(props: { session: Workout; cooldown?: LiftDay['cooldown']; hist
         const hold = ex.kind === 'hold';
         const c = t.train.session;
         const reps = plural(target.reps, hold ? c.seconds : c.reps);
-        const amount = target.kg === undefined ? reps : fill(c.load, { kg: fmt(target.kg, 1), reps });
+        const amount = target.kg === undefined ? reps : fill(c.load, { kg: fmt(target.kg, 2, 0), reps });
         const sets = plural(e.planned, c.sets);
         return (
           <Card key={i} title={ex.name} action={<a href={guide(e.exercise)}>{c.howTo}</a>}>
@@ -292,7 +292,7 @@ function SetLogger(props: { hold: boolean; sets: SetLog[]; planned: number; defa
         if (done)
           return (
             <li key={n} className="done">
-              <span className="num">{fill(props.hold ? c.loggedHold : c.logged, { n: n + 1, kg: fmt(done.kg, 1), reps: done.reps, rir: done.rir })}</span>
+              <span className="num">{fill(props.hold ? c.loggedHold : c.logged, { n: n + 1, kg: fmt(done.kg, 2, 0), reps: done.reps, rir: done.rir })}</span>
               <button type="button" className="icon-btn" aria-label={fill(c.remove, { n: n + 1 })} onClick={() => props.onLog(props.sets.filter((_, j) => j !== n))}>
                 ×
               </button>

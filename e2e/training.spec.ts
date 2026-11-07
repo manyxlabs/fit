@@ -97,7 +97,7 @@ test('the strength program prescribes the next load from the logged estimated ma
 
   // 100 kg × 5 with 3 in reserve estimates 126.7 kg; 4 reps with 2 in reserve is 126.7 / 1.2 = 105.6, rounded to the 2.5 kg step.
   await page.getByLabel('Train a different day').selectOption({ label: 'Week 2 · Upper A' });
-  await expect(page.getByRole('region', { name: 'Barbell bench press' }).getByText(/^Target: 105\.0 kg × 4 reps, 4 sets, 2 reps in reserve/)).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Barbell bench press' }).getByText(/^Target: 105 kg × 4 reps, 4 sets, 2 reps in reserve/)).toBeVisible();
   await page.screenshot({ path: 'test-results/artifacts/strength-target.png', fullPage: true });
 });
 

@@ -449,16 +449,36 @@ details[open] summary {
   color: rgb(var(--accent-text));
 }
 
+/* Two deliberate rows on a phone, the load on the first and reserve and Log on the second; one row
+   where it fits. Columns: number, kg, "kg ×", reps, then reserve and Log. */
 .set-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: grid;
+  flex: 1;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
   align-items: center;
-  padding-block: 6px;
+  padding-block: 8px;
 }
 
-.set-form input {
-  width: 4.75em;
+.set-form input,
+.set-form select {
+  width: 100%;
+  min-width: 0;
+}
+
+.set-form select {
+  grid-column: 1 / 4;
+}
+
+@media (min-width: 560px) {
+  .set-form {
+    grid-template-columns: auto 5.5em auto 5.5em minmax(0, 12em) auto;
+    justify-content: start;
+  }
+
+  .set-form select {
+    grid-column: auto;
+  }
 }
 
 .rest {
