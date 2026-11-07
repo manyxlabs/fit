@@ -22,7 +22,6 @@
 {"name": "Peanut butter toast", "aliases": ["peanut butter sandwich", "pb toast"], "diet": "veg", "ingredients": [["bread_brown", 56], ["peanut_butter", 16]], "cookedGrams": 72, "units": [["2 slices", 72]]},
 {"name": "Bread omelette", "diet": "egg", "ingredients": [["bread_white", 50], ["egg_whole_raw", 100], ["onion", 15], ["green_chilli", 2], ["butter", 6]], "cookedGrams": 160, "units": [["1 plate", 160]]},
 {"name": "French toast", "diet": "egg", "ingredients": [["bread_white", 50], ["egg_whole_raw", 50], ["milk_toned", 20], ["sugar", 5], ["butter", 5]], "cookedGrams": 120, "units": [["2 slices", 120]]},
-
 {"name": "Rice (cooked)", "aliases": ["chawal", "steamed rice", "plain rice", "boiled rice", "white rice"], "diet": "vegan", "ingredients": [["rice_white_raw", 100]], "cookedGrams": 300, "units": [["1 katori", 150], ["1 cup", 160], ["1 plate", 250]]},
 {"name": "Brown rice (cooked)", "aliases": ["brown rice"], "diet": "vegan", "ingredients": [["rice_brown_raw", 100]], "cookedGrams": 300, "units": [["1 katori", 150], ["1 cup", 160]]},
 {"name": "Jeera rice", "diet": "veg", "ingredients": [["rice_white_raw", 100], ["ghee", 8], ["cumin_seeds", 2]], "cookedGrams": 305, "units": [["1 katori", 150], ["1 plate", 250]]},
@@ -40,7 +39,6 @@
 {"name": "Chicken fried rice", "diet": "nonveg", "ingredients": [["rice_white_raw", 100], ["chicken_breast_raw", 100], ["egg_whole_raw", 50], ["sunflower_oil", 15], ["cabbage", 25], ["carrot", 25], ["spring_onion", 15]], "cookedGrams": 480, "units": [["1 plate", 300], ["1 katori", 150]]},
 {"name": "Ven pongal", "aliases": ["pongal", "khara pongal"], "diet": "veg", "ingredients": [["rice_white_raw", 70], ["moong_raw", 30], ["ghee", 15], ["cashews", 5], ["cumin_seeds", 1], ["ginger", 3]], "cookedGrams": 400, "units": [["1 katori", 200], ["1 plate", 250]]},
 {"name": "Bisi bele bath", "diet": "veg", "ingredients": [["rice_white_raw", 50], ["toor_dal_raw", 30], ["carrot", 30], ["green_beans", 30], ["green_peas", 20], ["onion", 20], ["tamarind", 5], ["garam_masala", 4], ["ghee", 10]], "cookedGrams": 420, "units": [["1 katori", 200], ["1 plate", 300]]},
-
 {"name": "Poha", "aliases": ["kanda poha", "aval", "pohe"], "diet": "vegan", "ingredients": [["poha_raw", 80], ["onion", 50], ["potato", 50], ["peanuts_raw", 15], ["sunflower_oil", 12], ["sugar", 5], ["lemon_juice", 10], ["turmeric", 1], ["green_chilli", 4], ["coriander_leaves", 4]], "cookedGrams": 330, "units": [["1 plate", 180], ["1 katori", 120]]},
 {"name": "Upma", "aliases": ["rava upma", "uppittu", "sooji upma"], "diet": "vegan", "ingredients": [["semolina", 50], ["sunflower_oil", 8], ["onion", 25], ["green_peas", 10], ["carrot", 10], ["mustard_seeds", 1], ["green_chilli", 3]], "cookedGrams": 210, "units": [["1 plate", 200], ["1 katori", 150]]},
 {"name": "Semiya upma", "aliases": ["vermicelli upma"], "diet": "vegan", "ingredients": [["pasta_dry", 60], ["sunflower_oil", 8], ["onion", 20], ["green_peas", 20], ["carrot", 15], ["mustard_seeds", 1]], "cookedGrams": 230, "units": [["1 plate", 200], ["1 katori", 150]]},
@@ -55,7 +53,6 @@
 {"name": "Rasam", "diet": "veg", "ingredients": [["tomato", 80], ["tamarind", 8], ["toor_dal_raw", 10], ["garlic", 4], ["cumin_seeds", 2], ["ghee", 4]], "cookedGrams": 400, "units": [["1 katori", 150], ["1 cup", 200]]},
 {"name": "Coconut chutney", "aliases": ["chutney", "thengai chutney"], "diet": "vegan", "ingredients": [["coconut_fresh", 60], ["chickpeas_raw", 10], ["green_chilli", 4], ["sunflower_oil", 3], ["mustard_seeds", 1]], "cookedGrams": 120, "units": [["1 tbsp", 15], ["1 katori", 60]]},
 {"name": "Tomato chutney", "diet": "vegan", "ingredients": [["tomato", 200], ["onion", 50], ["sunflower_oil", 10], ["chilli_powder", 2], ["mustard_seeds", 1]], "cookedGrams": 200, "units": [["1 tbsp", 15], ["1 katori", 60]]},
-
 {"name": "Dal tadka", "aliases": ["dal", "toor dal", "arhar dal", "yellow dal"], "diet": "veg", "ingredients": [["toor_dal_raw", 100], ["ghee", 12], ["onion", 40], ["tomato", 60], ["garlic", 5], ["ginger", 5], ["cumin_seeds", 2], ["green_chilli", 4], ["turmeric", 1], ["chilli_powder", 1]], "cookedGrams": 500, "units": [["1 katori", 150], ["1 cup", 200]]},
 {"name": "Dal fry", "diet": "vegan", "ingredients": [["toor_dal_raw", 100], ["sunflower_oil", 15], ["onion", 60], ["tomato", 70], ["garlic", 5], ["ginger", 5], ["cumin_seeds", 2], ["green_chilli", 4], ["turmeric", 1], ["chilli_powder", 2]], "cookedGrams": 520, "units": [["1 katori", 150], ["1 cup", 200]]},
 {"name": "Plain dal", "aliases": ["boiled dal", "sada dal"], "diet": "vegan", "ingredients": [["toor_dal_raw", 100], ["turmeric", 1]], "cookedGrams": 450, "units": [["1 katori", 150], ["1 cup", 200]]},
@@ -68,7 +65,6 @@
 {"name": "Lobia curry", "aliases": ["chawli", "black eyed beans curry"], "diet": "vegan", "ingredients": [["lobia_raw", 100], ["onion", 50], ["tomato", 70], ["sunflower_oil", 12], ["garam_masala", 3]], "cookedGrams": 440, "units": [["1 katori", 150]]},
 {"name": "Kadhi", "aliases": ["gujarati kadhi", "plain kadhi"], "diet": "veg", "ingredients": [["curd", 200], ["besan", 25], ["sunflower_oil", 8], ["cumin_seeds", 1], ["mustard_seeds", 1], ["turmeric", 1], ["sugar", 3]], "cookedGrams": 420, "units": [["1 katori", 150], ["1 cup", 200]]},
 {"name": "Kadhi pakora", "aliases": ["punjabi kadhi"], "diet": "veg", "ingredients": [["curd", 200], ["besan", 55], ["onion", 30], ["sunflower_oil", 22], ["cumin_seeds", 1], ["turmeric", 1]], "cookedGrams": 480, "units": [["1 katori", 150], ["1 cup", 200]]},
-
 {"name": "Paneer bhurji", "diet": "veg", "ingredients": [["paneer", 100], ["onion", 40], ["tomato", 40], ["capsicum", 20], ["sunflower_oil", 8], ["turmeric", 1], ["garam_masala", 1]], "cookedGrams": 190, "units": [["1 katori", 120], ["1 plate", 190]]},
 {"name": "Palak paneer", "aliases": ["saag paneer"], "diet": "veg", "ingredients": [["spinach", 200], ["paneer", 100], ["onion", 40], ["tomato", 30], ["cream", 10], ["sunflower_oil", 10], ["ginger", 5], ["garlic", 5], ["garam_masala", 2]], "cookedGrams": 330, "units": [["1 katori", 150]]},
 {"name": "Paneer butter masala", "aliases": ["paneer makhani", "butter paneer"], "diet": "veg", "ingredients": [["paneer", 100], ["tomato", 150], ["onion", 40], ["butter", 15], ["cream", 25], ["cashews", 10], ["sunflower_oil", 5], ["sugar", 3], ["ginger", 5], ["garlic", 5], ["garam_masala", 3]], "cookedGrams": 330, "units": [["1 katori", 150]]},
@@ -81,14 +77,12 @@
 {"name": "Soya chunk curry", "aliases": ["soya curry", "soya chunks curry", "meal maker curry", "nutrela curry"], "diet": "vegan", "ingredients": [["soya_chunks", 50], ["onion", 50], ["tomato", 60], ["sunflower_oil", 12], ["ginger", 5], ["garlic", 5], ["garam_masala", 3]], "cookedGrams": 330, "units": [["1 katori", 150]]},
 {"name": "Boiled soya chunks", "aliases": ["soya chunks boiled"], "diet": "vegan", "ingredients": [["soya_chunks", 100]], "cookedGrams": 300, "units": [["1 katori", 100]]},
 {"name": "Tofu bhurji", "aliases": ["scrambled tofu"], "diet": "vegan", "ingredients": [["tofu", 150], ["onion", 30], ["tomato", 30], ["sunflower_oil", 8], ["turmeric", 1]], "cookedGrams": 200, "units": [["1 katori", 120], ["1 plate", 200]]},
-
 {"name": "Egg bhurji", "aliases": ["anda bhurji", "scrambled eggs"], "diet": "egg", "ingredients": [["egg_whole_raw", 100], ["onion", 25], ["tomato", 25], ["green_chilli", 3], ["sunflower_oil", 7]], "cookedGrams": 140, "units": [["2 eggs", 140], ["1 katori", 100]]},
 {"name": "Omelette", "aliases": ["masala omelette", "omlet"], "diet": "egg", "ingredients": [["egg_whole_raw", 100], ["onion", 15], ["tomato", 10], ["green_chilli", 2], ["sunflower_oil", 5]], "cookedGrams": 120, "units": [["1 omelette (2 eggs)", 120]]},
 {"name": "Egg white omelette", "diet": "egg", "ingredients": [["egg_white_raw", 132], ["onion", 15], ["sunflower_oil", 3]], "cookedGrams": 135, "units": [["1 omelette (4 whites)", 135]]},
 {"name": "Fried egg", "aliases": ["half fry", "bullseye", "sunny side up"], "diet": "egg", "ingredients": [["egg_whole_raw", 50], ["sunflower_oil", 4]], "cookedGrams": 48, "units": [["1 egg", 48]]},
 {"name": "Egg curry", "aliases": ["anda curry"], "diet": "egg", "ingredients": [["egg_hard_boiled", 100], ["onion", 50], ["tomato", 60], ["sunflower_oil", 12], ["ginger", 4], ["garlic", 4], ["garam_masala", 3]], "cookedGrams": 240, "units": [["1 katori (2 eggs)", 240], ["1 egg with gravy", 120]]},
 {"name": "Egg roll", "aliases": ["anda roll", "egg kathi roll"], "diet": "egg", "ingredients": [["maida", 60], ["sunflower_oil", 10], ["egg_whole_raw", 50], ["onion", 20], ["ketchup", 5]], "cookedGrams": 160, "units": [["1 roll", 160]]},
-
 {"name": "Chicken curry", "aliases": ["chicken masala", "murgh curry"], "diet": "nonveg", "ingredients": [["chicken_curry_cut", 500], ["onion", 150], ["tomato", 150], ["sunflower_oil", 40], ["curd", 50], ["ginger", 15], ["garlic", 15], ["garam_masala", 10]], "cookedGrams": 800, "units": [["1 katori", 150], ["1 piece with gravy", 100]]},
 {"name": "Butter chicken", "aliases": ["murgh makhani", "chicken makhani"], "diet": "nonveg", "ingredients": [["chicken_leg_raw", 500], ["curd", 60], ["butter", 40], ["cream", 60], ["tomato_puree", 250], ["cashews", 20], ["sunflower_oil", 10], ["sugar", 8], ["ginger", 10], ["garlic", 10], ["garam_masala", 8]], "cookedGrams": 800, "units": [["1 katori", 150]]},
 {"name": "Chicken tikka masala", "diet": "nonveg", "ingredients": [["chicken_breast_raw", 400], ["curd", 50], ["sunflower_oil", 15], ["butter", 15], ["cream", 40], ["tomato", 200], ["onion", 80], ["ginger", 8], ["garlic", 8], ["garam_masala", 8]], "cookedGrams": 700, "units": [["1 katori", 150]]},
@@ -111,7 +105,6 @@
 {"name": "Grilled salmon", "diet": "nonveg", "ingredients": [["salmon_raw", 200], ["olive_oil", 4], ["lemon_juice", 5]], "cookedGrams": 175, "units": [["1 fillet", 120]]},
 {"name": "Prawn curry", "aliases": ["prawns masala", "jhinga curry", "shrimp curry"], "diet": "nonveg", "ingredients": [["prawns_raw", 300], ["onion", 80], ["tomato", 80], ["coconut_milk", 50], ["sunflower_oil", 20], ["garam_masala", 4]], "cookedGrams": 450, "units": [["1 katori", 150]]},
 {"name": "Prawn fry", "aliases": ["prawns fry", "chemmeen fry"], "diet": "nonveg", "ingredients": [["prawns_raw", 250], ["rice_flour", 10], ["chilli_powder", 4], ["sunflower_oil", 15]], "cookedGrams": 230, "units": [["1 plate", 150]]},
-
 {"name": "Aloo sabzi", "aliases": ["aloo bhaji", "potato sabzi", "jeera aloo"], "diet": "vegan", "ingredients": [["potato", 300], ["sunflower_oil", 15], ["cumin_seeds", 2], ["turmeric", 1], ["chilli_powder", 2]], "cookedGrams": 290, "units": [["1 katori", 120]]},
 {"name": "Aloo curry", "aliases": ["aloo rasa", "puri bhaji", "potato curry"], "diet": "vegan", "ingredients": [["potato", 250], ["tomato", 100], ["onion", 30], ["sunflower_oil", 12], ["garam_masala", 3]], "cookedGrams": 500, "units": [["1 katori", 150]]},
 {"name": "Aloo gobi", "diet": "vegan", "ingredients": [["potato", 150], ["cauliflower", 200], ["onion", 30], ["tomato", 40], ["sunflower_oil", 15], ["garam_masala", 4]], "cookedGrams": 380, "units": [["1 katori", 120]]},
@@ -130,7 +123,6 @@
 {"name": "Beans poriyal", "aliases": ["beans sabzi", "green beans stir fry"], "diet": "vegan", "ingredients": [["green_beans", 250], ["coconut_fresh", 20], ["sunflower_oil", 8], ["mustard_seeds", 1]], "cookedGrams": 250, "units": [["1 katori", 120]]},
 {"name": "Avial", "diet": "veg", "ingredients": [["carrot", 60], ["green_beans", 60], ["drumstick", 40], ["pumpkin", 60], ["coconut_fresh", 50], ["curd", 50], ["coconut_oil", 10]], "cookedGrams": 330, "units": [["1 katori", 150]]},
 {"name": "Pav bhaji", "diet": "veg", "ingredients": [["potato", 150], ["cauliflower", 60], ["green_peas", 50], ["capsicum", 40], ["tomato", 150], ["onion", 60], ["butter", 45], ["garam_masala", 5], ["bread_white", 160]], "cookedGrams": 645, "units": [["1 plate (bhaji + 2 pav)", 320]]},
-
 {"name": "Raita", "aliases": ["cucumber raita", "kheera raita"], "diet": "veg", "ingredients": [["curd", 150], ["cucumber", 50], ["cumin_seeds", 1]], "cookedGrams": 200, "units": [["1 katori", 150]]},
 {"name": "Boondi raita", "diet": "veg", "ingredients": [["curd", 150], ["besan", 15], ["sunflower_oil", 6]], "cookedGrams": 180, "units": [["1 katori", 150]]},
 {"name": "Sprouts salad", "aliases": ["moong sprouts salad", "sprouts chaat"], "diet": "vegan", "ingredients": [["moong_raw", 40], ["onion", 20], ["tomato", 30], ["cucumber", 30], ["lemon_juice", 5], ["coriander_leaves", 3]], "cookedGrams": 188, "units": [["1 katori", 120], ["1 bowl", 188]]},
@@ -146,7 +138,6 @@
 {"name": "Masala oats", "diet": "vegan", "ingredients": [["oats", 40], ["onion", 20], ["tomato", 20], ["carrot", 15], ["green_peas", 10], ["sunflower_oil", 5]], "cookedGrams": 220, "units": [["1 bowl", 220]]},
 {"name": "Overnight oats", "diet": "veg", "ingredients": [["oats", 40], ["milk_toned", 150], ["chia_seeds", 5], ["honey", 10]], "cookedGrams": 205, "units": [["1 jar", 205]]},
 {"name": "Cornflakes with milk", "diet": "veg", "ingredients": [["cornflakes", 30], ["milk_toned", 150], ["sugar", 5]], "cookedGrams": 185, "units": [["1 bowl", 185]]},
-
 {"name": "Samosa", "diet": "vegan", "ingredients": [["maida", 100], ["potato", 200], ["green_peas", 30], ["garam_masala", 4], ["sunflower_oil", 60]], "cookedGrams": 370, "units": [["1 samosa", 90]]},
 {"name": "Onion pakora", "aliases": ["pakora", "pakoda", "bhajiya", "kanda bhaji"], "diet": "vegan", "ingredients": [["besan", 100], ["onion", 150], ["chilli_powder", 2], ["sunflower_oil", 50]], "cookedGrams": 270, "units": [["1 piece", 20], ["1 plate", 100]]},
 {"name": "Paneer pakora", "diet": "veg", "ingredients": [["paneer", 100], ["besan", 40], ["chilli_powder", 1], ["sunflower_oil", 25]], "cookedGrams": 180, "units": [["1 piece", 30], ["1 plate", 120]]},
@@ -161,10 +152,8 @@
 {"name": "Roasted papad", "aliases": ["papad", "papadum"], "diet": "vegan", "ingredients": [["urad_dal_raw", 100]], "cookedGrams": 100, "units": [["1 papad", 12]]},
 {"name": "Fried papad", "diet": "vegan", "ingredients": [["urad_dal_raw", 100], ["sunflower_oil", 25]], "cookedGrams": 125, "units": [["1 papad", 15]]},
 {"name": "Chikki", "aliases": ["peanut chikki", "groundnut chikki"], "diet": "vegan", "ingredients": [["peanuts_roasted", 100], ["jaggery", 100]], "cookedGrams": 190, "units": [["1 piece", 20]]},
-
 {"name": "Tomato soup", "diet": "veg", "ingredients": [["tomato", 300], ["butter", 8], ["cream", 10], ["sugar", 5], ["cornstarch", 5]], "cookedGrams": 300, "units": [["1 bowl", 250]]},
 {"name": "Sweet corn soup", "aliases": ["corn soup"], "diet": "vegan", "ingredients": [["sweet_corn", 100], ["cornstarch", 10], ["carrot", 20], ["green_beans", 20], ["sunflower_oil", 5]], "cookedGrams": 350, "units": [["1 bowl", 250]]},
-
 {"name": "Protein shake (whey + milk)", "aliases": ["whey shake", "protein shake", "whey with milk"], "diet": "veg", "ingredients": [["whey_protein", 32], ["milk_toned", 250]], "cookedGrams": 282, "units": [["1 glass (1 scoop)", 282]]},
 {"name": "Protein shake (whey + water)", "aliases": ["whey with water"], "diet": "veg", "ingredients": [["whey_protein", 32]], "cookedGrams": 282, "units": [["1 glass (1 scoop)", 282]]},
 {"name": "Banana shake", "aliases": ["banana milkshake"], "diet": "veg", "ingredients": [["banana", 118], ["milk_toned", 200], ["sugar", 10]], "cookedGrams": 328, "units": [["1 glass", 300]]},
@@ -179,7 +168,6 @@
 {"name": "Coffee with milk", "aliases": ["milk coffee", "coffee"], "diet": "veg", "ingredients": [["instant_coffee", 2], ["milk_toned", 150], ["sugar", 6]], "cookedGrams": 158, "units": [["1 cup", 150]]},
 {"name": "Filter coffee", "aliases": ["south indian coffee", "kaapi"], "diet": "veg", "ingredients": [["coffee_brewed", 50], ["milk_toned", 100], ["sugar", 8]], "cookedGrams": 158, "units": [["1 tumbler", 150]]},
 {"name": "Nimbu pani", "aliases": ["lemonade", "shikanji", "lemon water"], "diet": "vegan", "ingredients": [["lemon_juice", 20], ["sugar", 20]], "cookedGrams": 250, "units": [["1 glass", 250]]},
-
 {"name": "Kheer", "aliases": ["rice kheer", "payasam", "chawal ki kheer"], "diet": "veg", "ingredients": [["milk_full_cream", 500], ["rice_white_raw", 30], ["sugar", 40], ["almonds", 5], ["cashews", 5]], "cookedGrams": 420, "units": [["1 katori", 120]]},
 {"name": "Sevai kheer", "aliases": ["semiya payasam", "seviyan"], "diet": "veg", "ingredients": [["milk_full_cream", 400], ["pasta_dry", 30], ["sugar", 30], ["ghee", 5]], "cookedGrams": 380, "units": [["1 katori", 120]]},
 {"name": "Sooji halwa", "aliases": ["sheera", "rava kesari", "halwa"], "diet": "veg", "ingredients": [["semolina", 50], ["ghee", 40], ["sugar", 50]], "cookedGrams": 250, "units": [["1 katori", 100]]},
@@ -187,5 +175,33 @@
 {"name": "Gulab jamun", "diet": "veg", "ingredients": [["milk_powder_whole", 100], ["maida", 25], ["ghee", 45], ["milk_full_cream", 40], ["sugar", 200]], "cookedGrams": 590, "units": [["1 piece", 40]]},
 {"name": "Rasgulla", "aliases": ["rosogolla"], "diet": "veg", "ingredients": [["paneer", 150], ["sugar", 80]], "cookedGrams": 400, "units": [["1 piece", 40]]},
 {"name": "Besan ladoo", "aliases": ["ladoo", "laddu"], "diet": "veg", "ingredients": [["besan", 100], ["ghee", 50], ["sugar", 80]], "cookedGrams": 225, "units": [["1 ladoo", 35]]},
-{"name": "Jalebi", "diet": "veg", "ingredients": [["maida", 100], ["curd", 10], ["sunflower_oil", 40], ["sugar", 150]], "cookedGrams": 330, "units": [["1 piece", 25], ["100 g", 100]]}
+{"name": "Jalebi", "diet": "veg", "ingredients": [["maida", 100], ["curd", 10], ["sunflower_oil", 40], ["sugar", 150]], "cookedGrams": 330, "units": [["1 piece", 25], ["100 g", 100]]},
+{"name": "Quinoa (cooked)", "aliases": ["quinoa"], "diet": "vegan", "ingredients": [["quinoa_raw", 100]], "cookedGrams": 300, "units": [["1 katori", 150], ["1 cup", 185]]},
+{"name": "Sattu", "aliases": ["roasted gram flour", "sattu atta"], "diet": "vegan", "ingredients": [["besan", 100]], "cookedGrams": 100, "units": [["1 tbsp", 10], ["1 cup", 100]]},
+{"name": "Sattu drink", "aliases": ["sattu sharbat", "sattu ghol"], "diet": "vegan", "ingredients": [["besan", 30], ["lemon_juice", 10], ["cumin_seeds", 1]], "cookedGrams": 280, "units": [["1 glass", 280]]},
+{"name": "Sattu paratha", "diet": "veg", "ingredients": [["atta", 100], ["besan", 50], ["onion", 20], ["green_chilli", 4], ["coriander_leaves", 4], ["ghee", 15]], "cookedGrams": 225, "units": [["1 paratha", 110]]},
+{"name": "Multigrain roti", "aliases": ["multigrain atta", "multigrain chapati"], "diet": "vegan", "ingredients": [["atta", 60], ["sorghum_flour", 15], ["millet_flour", 10], ["besan", 10], ["oats", 5]], "cookedGrams": 120, "units": [["1 roti", 40]]},
+{"name": "Oats chilla", "aliases": ["oats cheela"], "diet": "vegan", "ingredients": [["oats", 40], ["besan", 15], ["onion", 20], ["tomato", 20], ["green_chilli", 2], ["coriander_leaves", 3], ["sunflower_oil", 5]], "cookedGrams": 140, "units": [["1 chilla", 70]]},
+{"name": "Adai", "aliases": ["adai dosa"], "diet": "vegan", "ingredients": [["rice_white_raw", 40], ["toor_dal_raw", 20], ["chickpeas_raw", 20], ["urad_dal_raw", 10], ["onion", 20], ["green_chilli", 3], ["sunflower_oil", 10]], "cookedGrams": 230, "units": [["1 adai", 90]]},
+{"name": "Rajma chawal", "aliases": ["rajma rice"], "diet": "vegan", "ingredients": [["rajma_raw", 40], ["rice_white_raw", 60], ["onion", 30], ["tomato", 40], ["sunflower_oil", 8], ["ginger", 3], ["garlic", 3], ["garam_masala", 1]], "cookedGrams": 420, "units": [["1 plate", 400]]},
+{"name": "Fish tikka", "aliases": ["tandoori fish"], "diet": "nonveg", "ingredients": [["tilapia_raw", 250], ["curd", 40], ["sunflower_oil", 8], ["lemon_juice", 5], ["garam_masala", 4]], "cookedGrams": 210, "units": [["1 piece", 25], ["1 plate", 200]]},
+{"name": "Veg manchurian", "aliases": ["manchurian"], "diet": "vegan", "ingredients": [["cabbage", 150], ["carrot", 40], ["spring_onion", 15], ["maida", 30], ["cornstarch", 20], ["ketchup", 20], ["garlic", 5], ["ginger", 3], ["sunflower_oil", 40]], "cookedGrams": 330, "units": [["1 plate", 200], ["1 katori", 150]]},
+{"name": "Kaju katli", "aliases": ["kaju barfi"], "diet": "veg", "ingredients": [["cashews", 100], ["sugar", 60], ["ghee", 3]], "cookedGrams": 160, "units": [["1 piece", 15]]},
+{"name": "Rasmalai", "diet": "veg", "ingredients": [["paneer", 60], ["milk_full_cream", 250], ["sugar", 30], ["pistachios", 3]], "cookedGrams": 220, "units": [["1 piece with rabri", 70]]},
+{"name": "Mysore pak", "diet": "veg", "ingredients": [["besan", 100], ["ghee", 150], ["sugar", 150]], "cookedGrams": 390, "units": [["1 piece", 25]]},
+{"name": "Motichoor ladoo", "aliases": ["boondi ladoo"], "diet": "veg", "ingredients": [["besan", 100], ["sugar", 120], ["ghee", 50]], "cookedGrams": 270, "units": [["1 ladoo", 30]]},
+{"name": "Peda", "aliases": ["pedha"], "diet": "veg", "ingredients": [["milk_powder_whole", 100], ["milk_full_cream", 30], ["sugar", 40], ["ghee", 10]], "cookedGrams": 170, "units": [["1 peda", 20]]},
+{"name": "Shrikhand", "diet": "veg", "ingredients": [["greek_yogurt", 150], ["sugar", 40]], "cookedGrams": 190, "units": [["1 katori", 100]]},
+{"name": "Coconut ladoo", "aliases": ["nariyal ladoo"], "diet": "veg", "ingredients": [["coconut_desiccated", 100], ["condensed_milk", 100]], "cookedGrams": 195, "units": [["1 ladoo", 25]]},
+{"name": "Kuttu roti", "aliases": ["kuttu ki roti", "buckwheat roti"], "diet": "veg", "ingredients": [["buckwheat_flour", 100], ["potato", 40], ["ghee", 5]], "cookedGrams": 165, "units": [["1 roti", 45]]},
+{"name": "Kuttu puri", "aliases": ["kuttu ki puri"], "diet": "vegan", "ingredients": [["buckwheat_flour", 100], ["potato", 40], ["groundnut_oil", 25]], "cookedGrams": 180, "units": [["1 puri", 30]]},
+{"name": "Rajgira roti", "aliases": ["rajgira paratha", "amaranth roti"], "diet": "veg", "ingredients": [["amaranth_raw", 100], ["potato", 40], ["ghee", 5]], "cookedGrams": 165, "units": [["1 roti", 45]]},
+{"name": "Rajgira ladoo", "aliases": ["ramdana ladoo", "amaranth ladoo"], "diet": "veg", "ingredients": [["amaranth_raw", 100], ["jaggery", 60], ["ghee", 5]], "cookedGrams": 160, "units": [["1 ladoo", 25]]},
+{"name": "Sabudana vada", "diet": "vegan", "ingredients": [["sabudana", 60], ["potato", 150], ["peanuts_roasted", 30], ["green_chilli", 4], ["groundnut_oil", 25]], "cookedGrams": 250, "units": [["1 vada", 40]]},
+{"name": "Vrat aloo", "aliases": ["vrat wale aloo", "farali aloo", "upvas batata bhaji"], "diet": "veg", "ingredients": [["potato", 300], ["ghee", 15], ["cumin_seeds", 2], ["green_chilli", 4], ["coriander_leaves", 4]], "cookedGrams": 290, "units": [["1 katori", 120]]},
+{"name": "Vrat paneer bhurji", "aliases": ["farali paneer"], "diet": "veg", "ingredients": [["paneer", 150], ["ghee", 8], ["green_chilli", 3], ["ginger", 3], ["coriander_leaves", 3]], "cookedGrams": 160, "units": [["1 katori", 120]]},
+{"name": "Shakarkandi chaat", "aliases": ["sweet potato chaat"], "diet": "vegan", "ingredients": [["sweet_potato", 200], ["lemon_juice", 10], ["coriander_leaves", 3]], "cookedGrams": 200, "units": [["1 bowl", 150]]},
+{"name": "Boiled sweet potato", "aliases": ["shakarkandi", "sweet potato"], "diet": "vegan", "ingredients": [["sweet_potato", 100]], "cookedGrams": 100, "units": [["1 medium", 130]]},
+{"name": "Boiled potato", "aliases": ["aloo", "boiled aloo"], "diet": "vegan", "ingredients": [["potato", 100]], "cookedGrams": 100, "units": [["1 medium", 150]]},
+{"name": "Makhana kheer", "diet": "veg", "ingredients": [["milk_full_cream", 400], ["makhana_roasted", 25], ["sugar", 25], ["almonds", 5]], "cookedGrams": 360, "units": [["1 katori", 120]]}
 ]
