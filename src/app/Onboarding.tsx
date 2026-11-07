@@ -7,7 +7,8 @@ import { ProfileForm } from './ProfileForm';
 export async function saveProfile(p: Profile, kg?: number) {
   const old = await getSetting('profile');
   if (kg !== undefined) await (await db).put('weights', { date: today(), kg });
-  if (!old || old.setup !== p.setup || old.days !== p.days || old.program !== p.program) await setSetting('program', planOf(p.program ?? programFor(p.setup, p.days)));
+  if (!old || old.setup !== p.setup || !old.bar !== !p.bar || old.days !== p.days || old.program !== p.program)
+    await setSetting('program', planOf(p.program ?? programFor(p.setup, p.days), p.setup, !!p.bar));
   await setSetting('profile', p);
 }
 

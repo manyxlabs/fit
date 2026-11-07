@@ -1,5 +1,5 @@
 import { ACTIVITIES } from './activities';
-import { EXERCISES, type Equipment, type ExerciseId, type Muscle } from './exercises';
+import { alternatives, canDo, EXERCISES, type Equipment, type Exercise, type ExerciseId, type Muscle } from './exercises';
 import type { PoseId } from './poses';
 
 /**
@@ -85,7 +85,7 @@ const fullBodyBw: LiftDay[] = [
 
 const muscle = (name: string, setup: Equipment, perWeek: number, days: LiftDay[]): Program => ({
   name,
-  about: 'Each muscle trained about twice a week with double progression: add reps until every set reaches the top of the range, then add load.',
+  about: `Each muscle trained about twice a week with double progression: add reps until every set reaches the top of the range, then ${setup === 'bodyweight' ? 'move to a harder variation' : 'add load'}.`,
   goal: 'muscle',
   level: 'any',
   setups: [setup],
@@ -268,10 +268,34 @@ export const programsFor = (setup: Equipment, days: number) =>
     return p.setups.includes(setup) && p.perWeek <= days;
   });
 
-export const planOf = (id: ProgramId): Plan => {
+/** A template as this person can do it, with moves that need gear they lack swapped out. */
+export const planOf = (id: ProgramId, setup: Equipment, bar: boolean): Plan => {
   const p: Program = PROGRAMS[id];
-  return { id, name: p.name, days: structuredClone(p.days), repeatFrom: p.repeatFrom };
+  const days = structuredClone(p.days).map((d) => ('slots' in d ? { ...d, slots: fit(d.slots, setup, bar) } : d));
+  return { id, name: p.name, days, repeatFrom: p.repeatFrom };
 };
+
+/**
+ * A swap for the same main muscle first, else one that shares a main muscle (a pull-up becomes an
+ * inverted row). A day never holds one exercise twice, since a session tracks each once, so a move
+ * with nothing left to become is dropped.
+ */
+function fit(slots: Slot[], setup: Equipment, bar: boolean) {
+  const used = new Set(slots.filter(([id]) => canDo(id, setup, bar)).map(([id]) => id));
+  return slots.flatMap((s): Slot[] => {
+    const [id, ...rest] = s;
+    if (canDo(id, setup, bar)) return [s];
+    const a: Exercise = EXERCISES[id];
+    const near = (Object.keys(EXERCISES) as ExerciseId[]).filter((o) => {
+      const b: Exercise = EXERCISES[o];
+      return b.kind === a.kind && canDo(o, setup, bar) && (b.primary.includes(a.primary[0]) || a.primary.includes(b.primary[0]));
+    });
+    const to = [...alternatives(id, setup, bar), ...near].find((o) => !used.has(o));
+    if (!to) return [];
+    used.add(to);
+    return [[to, ...rest]];
+  });
+}
 
 /** Hard sets a week per muscle: a full set where it is a main mover, half where it assists. */
 export function weeklySets(days: { slots: { exercise: ExerciseId; sets: number }[] }[]) {

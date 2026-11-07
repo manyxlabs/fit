@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { alternatives, EXERCISES, exerciseSlug, MUSCLES, type Exercise, type ExerciseId, type Muscle } from '../data/exercises';
+import { alternatives, EXERCISES, exerciseSlug, MUSCLES, type Equipment, type Exercise, type ExerciseId, type Muscle } from '../data/exercises';
 import { ACTIVITIES } from '../data/activities';
 import { POSES } from '../data/poses';
 import { weeklySets, type Day, type Hold, type HoldDay, type LiftDay, type Plan, type RunDay } from '../data/programs';
@@ -111,6 +111,7 @@ export function Train({ profile }: { profile: Profile }) {
         cooldown={(program.days.find((d) => d.name === session.day) as LiftDay | undefined)?.cooldown}
         hist={hist}
         extraRir={ready.extraRir}
+        setup={profile.setup}
         // Saved first, so a logged set on screen is never lost to a reload or a killed tab.
         onChange={async (w) => {
           await setSetting('draft', w);
@@ -192,7 +193,7 @@ export function Train({ profile }: { profile: Profile }) {
   );
 }
 
-function Session(props: { session: Workout; cooldown?: LiftDay['cooldown']; hist: Map<ExerciseId, SetLog[][]>; extraRir: number; onChange: (w: Workout) => void; onEnd: (save: boolean) => void }) {
+function Session(props: { session: Workout; cooldown?: LiftDay['cooldown']; hist: Map<ExerciseId, SetLog[][]>; extraRir: number; setup: Equipment; onChange: (w: Workout) => void; onEnd: (save: boolean) => void }) {
   const [rest, setRest] = useState<number>();
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -219,7 +220,7 @@ function Session(props: { session: Workout; cooldown?: LiftDay['cooldown']; hist
         const ex: Exercise = EXERCISES[e.exercise];
         const sessions = props.hist.get(e.exercise) ?? [];
         const rir = (e.rir ?? (ex.compound ? 2 : 1)) + props.extraRir;
-        const target = e.rir === undefined ? nextTarget(e.exercise, e.range, sessions.at(-1) ?? []) : strengthTarget(e.exercise, e.range[0], rir, sessions);
+        const target = e.rir === undefined ? nextTarget(e.exercise, e.range, sessions.at(-1) ?? [], props.setup) : strengthTarget(e.exercise, e.range[0], rir, sessions);
         const hold = ex.kind === 'hold';
         return (
           <Card key={i} title={ex.name} action={<a href={guide(e.exercise)}>How to</a>}>
@@ -351,7 +352,7 @@ function ProgramCard({ program, profile }: { program: Plan; profile: Profile }) 
             {isLift(d) ? (
               <ul className="plan">
                 {d.slots.map(([id, n, lo, hi], j) => {
-                  const alts = alternatives(id, profile.setup);
+                  const alts = alternatives(id, profile.setup, !!profile.bar);
                   return (
                     <li key={j}>
                       {alts.length ? (

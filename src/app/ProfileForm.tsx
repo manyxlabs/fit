@@ -48,6 +48,7 @@ export function ProfileForm(props: { initial?: Profile; kg?: number; askWeight: 
         rate,
         diet: f.get('diet') as Diet,
         setup,
+        bar: setup !== 'gym' && f.get('bar') === 'on',
         days,
         program: program && programsFor(setup, days).includes(program) ? program : undefined,
         asian: f.get('asian') === 'on',
@@ -158,6 +159,12 @@ export function ProfileForm(props: { initial?: Profile; kg?: number; askWeight: 
           </select>
         </label>
       </div>
+      {setup !== 'gym' && (
+        <label className="check">
+          <input name="bar" type="checkbox" defaultChecked={i?.bar} />
+          I have a pull-up bar or dip station
+        </label>
+      )}
       <ProgramPicker setup={setup} days={days} value={program} onChange={setProgram} />
       <div className="grid two">
         <label className="field">

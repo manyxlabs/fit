@@ -13,7 +13,8 @@ const { id } = Astro.props;
 const ex: Exercise = EXERCISES[id];
 const how: HowTo = HOW_TO[id];
 const names = (ms: Muscle[]) => ms.map((m) => MUSCLES[m]).join(', ');
-const swaps = ex.setups.map((s) => [EQUIPMENT[s], alternatives(id, s)] as const).filter(([, a]) => a.length);
+// Someone reading about a bar exercise has a bar; anyone else may not.
+const swaps = ex.setups.map((s) => [EQUIPMENT[s], alternatives(id, s, !!ex.bar)] as const).filter(([, a]) => a.length);
 const description = `How to do the ${ex.name.toLowerCase()}: muscles worked, step-by-step form, common mistakes, sets and reps, and swaps.`;
 const steps = how.steps.filter((s) => s !== undefined);
 ---
@@ -58,7 +59,7 @@ const steps = how.steps.filter((s) => s !== undefined);
         </div>
         <div>
           <dt>Works for</dt>
-          <dd>{ex.setups.map((s) => EQUIPMENT[s]).join(', ')}</dd>
+          <dd>{ex.setups.map((s) => EQUIPMENT[s]).join(', ')}{ex.bar && ', with a pull-up bar or dip station at home'}</dd>
         </div>
       </dl>
     </section>

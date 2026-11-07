@@ -17,6 +17,8 @@ export type Profile = {
   rate: number;
   diet: Diet;
   setup: Equipment;
+  /** A home setup with a pull-up bar or dip station. */
+  bar?: boolean;
   days: number;
   /** Chosen in the profile; without it, the muscle program for the setup and days. */
   program?: ProgramId;
