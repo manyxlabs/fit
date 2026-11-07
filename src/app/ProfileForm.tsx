@@ -95,7 +95,8 @@ export function ProfileForm(props: { initial?: Profile; kg?: number; askWeight: 
           ))}
         </select>
       </label>
-      <div className="grid two">
+      {/* Without a pace to choose, Goal takes the whole row rather than half of it. */}
+      <div className={RATE_CHOICES[goal].length > 1 ? 'grid two' : 'stack'}>
         <label className="field">
           Goal
           <select
