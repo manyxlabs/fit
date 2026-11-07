@@ -2,7 +2,8 @@ import type { Diet } from './supplements';
 import foods from './foods.json';
 
 /** Per 100 g as eaten. Made by scripts/foods.mjs from data/. */
-export type Food = { name: string; aliases?: string[]; diet: Diet; kcal: number; protein: number; carbs: number; fat: number; fibre: number; units: [string, number][] };
+/** `vrat` marks food commonly eaten on vrat days (Navratri, Ekadashi). */
+export type Food = { name: string; aliases?: string[]; diet: Diet; vrat?: true; kcal: number; protein: number; carbs: number; fat: number; fibre: number; units: [string, number][] };
 
 export const FOODS = foods as Food[];
 
