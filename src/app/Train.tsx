@@ -93,8 +93,8 @@ export function Train({ profile }: { profile: Profile }) {
         timer={timer}
         onTimer={async (t) => {
           const next = { ...t, day: timer.day };
-          setTimer(next);
           await setSetting('timer', next);
+          setTimer(next);
         }}
         onEnd={async () => {
           await setSetting('timer', undefined);
@@ -112,8 +112,9 @@ export function Train({ profile }: { profile: Profile }) {
         hist={hist}
         extraRir={ready.extraRir}
         onChange={async (w) => {
-          setSession(w);
+          // Saved first, so a set shows as logged only once a reload would keep it.
           await setSetting('draft', w);
+          setSession(w);
         }}
         onEnd={async (save) => {
           const d = await db;
