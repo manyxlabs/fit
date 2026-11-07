@@ -4,6 +4,7 @@
 import '@fontsource-variable/inter';
 import { CALCULATORS } from '../../calcs/list';
 import { ACTIVITIES } from '../../data/activities';
+import { EXERCISES } from '../../data/exercises';
 import { GUIDES } from '../../guides';
 import * as c from '../../lib/calc';
 import { fmt } from '../../lib/fmt';
@@ -42,7 +43,7 @@ export function getStaticPaths() {
       eyebrow: 'Free fitness app',
       title: 'Everything for your fitness, in one free app',
       panel: 'In the app',
-      rows: [['Calories and macros', 'Measured from your own logs'], ['Indian food', 'Veg and non-veg, in rotis and katoris'], ['Training', 'Gym, home or bodyweight'], ['Your data', 'Stays on your phone']],
+      rows: [['Calories and macros', 'Measured from your own logs'], ['Indian food', 'Veg and non-veg, in rotis and katoris'], ['Training', 'Gym, home or bodyweight'], ['Your data', 'Only you can read it']],
     },
     app: {
       eyebrow: 'Free app',
@@ -52,7 +53,13 @@ export function getStaticPaths() {
     },
     calculators: { eyebrow: 'Free calculators', title: 'Fitness calculators that suit Indians', panel: example, rows: [calcCards.bmi[0], calcCards.tdee[1], calcCards.macros[1], calcCards.water[0]] },
     guides: { eyebrow: 'Guides', title: 'Plain guides to training, food and recovery', panel: 'Start with', rows: GUIDES.slice(0, 4).map((g) => ['', g.title]) },
-    privacy: { eyebrow: 'Privacy', title: 'Your health data stays on your phone', panel: 'Fit has', rows: [['Accounts', 'None'], ['Tracking and ads', 'None'], ['Your data lives', 'In your browser only'], ['Source code', 'Open, MIT licence']] },
+    privacy: { eyebrow: 'Privacy', title: 'Only you can read your health data', panel: 'Fit has', rows: [['Accounts', 'None'], ['Tracking and ads', 'None'], ['Your data lives', 'In your browser, encrypted if synced'], ['Source code', 'Open, MIT licence']] },
+    exercises: {
+      eyebrow: 'Exercise guides',
+      title: `How to do ${Object.keys(EXERCISES).length} exercises, for the gym or home`,
+      panel: 'Each guide has',
+      rows: [['', 'The muscles it works'], ['', 'Step-by-step form'], ['', 'Common mistakes'], ['', 'Sets, reps and swaps']],
+    },
     ...Object.fromEntries(
       CALCULATORS.map((x) => {
         if (!calcCards[x.slug]) throw new Error(`No share card for ${x.slug}`);
@@ -84,7 +91,7 @@ const [title, aside] = card.title.split(/ \((.+)\)$/);
           <p class="eyebrow">{card.eyebrow}</p>
           <h1>{title}{aside && <span>{aside}</span>}</h1>
         </div>
-        <p class="foot">Free · No account · Your data stays on your phone</p>
+        <p class="foot">Free · No account · Only you can read your data</p>
       </div>
       <div class="panel">
         <p class="label">{card.panel}</p>
