@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fit.manyxlabs.com/sitemap-index.xml

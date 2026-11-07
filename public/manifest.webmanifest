@@ -1,0 +1,14 @@
+{
+  "name": "Fit by Manyx Labs",
+  "short_name": "Fit",
+  "description": "Calories, Indian food, training, recovery and progress. Private and free.",
+  "start_url": "/app/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050506",
+  "theme_color": "#050506",
+  "icons": [
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

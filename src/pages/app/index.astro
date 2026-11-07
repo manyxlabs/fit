@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro';
+import App from '../../app/App';
+---
+
+<Base title="Your plan" description="Your calories, food, training and progress, kept in this browser." noindex>
+  <App client:only="react" />
+</Base>
+
+<script>
+  navigator.serviceWorker?.register('/sw.js');
+</script>

@@ -1,0 +1,9 @@
+# Response headers, applied by Cloudflare to the static assets.
+
+# Astro fingerprints these file names, so a changed file always gets a new URL.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

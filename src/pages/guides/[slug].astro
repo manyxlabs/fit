@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { GUIDES } from '../../guides';
+import { SITE } from '../../site';
+import '../../styles/pages.css';
+
+export const getStaticPaths = () => GUIDES.map((g, i) => ({ params: { slug: g.slug }, props: { g, next: GUIDES[(i + 1) % GUIDES.length] } }));
+const { g, next } = Astro.props;
+const { Content } = g;
+---
+
+<Base title={g.title} description={g.description} schema={[{ '@type': 'Article', headline: g.title, description: g.description, url: `${SITE}/guides/${g.slug}/`, publisher: { '@type': 'Organization', name: 'Manyx Labs' } }]}>
+  <Header />
+  <main class="wrap page">
+    <p class="crumbs"><a href="/guides/">Guides</a></p>
+    <article class="prose">
+      <h1>{g.title}</h1>
+      <Content />
+    </article>
+    <section class="cta glass">
+      <div>
+        <h2>Put it into practice</h2>
+        <p>The free Fit app sets your calories, macros and training, and adjusts them from your logs. No account; your data stays on your phone.</p>
+      </div>
+      <a class="btn primary" href="/app/">Open the app</a>
+    </section>
+    <p class="next">Next: <a href={`/guides/${next.slug}/`}>{next.title}</a></p>
+  </main>
+  <Footer />
+</Base>

@@ -1,0 +1,49 @@
+---
+import { EMAIL, LABS, REPO } from '../site';
+---
+
+<footer class="wrap">
+  <p class="note">General fitness information and estimates, not medical advice. See a doctor before starting if you have a medical condition, are pregnant, or are under 18.</p>
+  <div class="foot">
+    <p>&copy; {new Date().getFullYear()} <a href={LABS}>Manyx Labs</a>, Bengaluru</p>
+    <nav aria-label="Elsewhere">
+      <a href="/privacy/">Privacy</a>
+      <a href={REPO} target="_blank" rel="noopener">Source</a>
+      <a href={`${REPO}/issues/new`} target="_blank" rel="noopener">Report an issue</a>
+      <a href={`mailto:${EMAIL}`}>Email</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .note {
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    justify-content: space-between;
+    padding-block: 16px 40px;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--text);
+  }
+</style>

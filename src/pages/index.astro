@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { CALCULATORS } from '../calcs/list';
+import { GUIDES } from '../guides';
+import '../styles/pages.css';
+
+const FEATURES = [
+  ['Calories and macros', 'Targets from your body and goal, then measured from your own logs after a few weeks, so they fit you rather than a formula.'],
+  ['Indian food, veg and non-veg', 'Roti, dal, paneer, idli, chicken curry and more, in katoris, rotis and pieces, not just grams.'],
+  ['Training that progresses', 'A program for the gym, dumbbells at home or bodyweight, with the next weight and reps worked out every session.'],
+  ['Recovery that adjusts', 'Slept badly or caught a cold? Today’s session shrinks, or becomes rest, by the same rules coaches use.'],
+  ['Supplements, honestly', 'What works for your diet and goal, what to test for first, and what is a waste of money.'],
+  ['Progress you can trust', 'Weight trend, body measurements, body fat, strength and a weekly review with one thing to change.'],
+];
+---
+
+<Base
+  title="Free fitness tracker for calories, diet and training"
+  description="Calories, macros, Indian veg and non-veg food, workouts, recovery and supplements in one free app. No account, no ads, your data stays on your phone."
+  schema={[{ '@type': 'WebApplication', name: 'Fit', url: 'https://fit.manyxlabs.com/', applicationCategory: 'HealthApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' } }]}
+>
+  <Header />
+  <main class="wrap page">
+    <section class="hero">
+      <h1>Everything for your fitness, in one free app</h1>
+      <p class="lede">Calories, Indian veg and non-veg food, training, recovery, supplements and progress. It plans each day and adjusts as you go. No account, no ads, and your data never leaves your phone.</p>
+      <div class="row">
+        <a class="btn primary" href="/app/">Start free</a>
+        <a class="btn" href="/calculators/">Try a calculator</a>
+      </div>
+    </section>
+    <ul class="features">
+      {
+        FEATURES.map(([t, d]) => (
+          <li class="glass">
+            <h2>{t}</h2>
+            <p>{d}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <section class="split">
+      <div>
+        <h2>Calculators</h2>
+        <ul class="links">{CALCULATORS.map((c) => <li><a href={`/calculators/${c.slug}/`}>{c.name}</a></li>)}</ul>
+      </div>
+      <div>
+        <h2>Guides</h2>
+        <ul class="links">{GUIDES.map((g) => <li><a href={`/guides/${g.slug}/`}>{g.title}</a></li>)}</ul>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>

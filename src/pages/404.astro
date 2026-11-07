@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base title="Page not found" description="This page does not exist." noindex>
+  <Header />
+  <main class="wrap missing">
+    <h1>Page not found</h1>
+    <p>That address does not exist here.</p>
+    <a class="btn primary" href="/">Go home</a>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .missing {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+    padding-block: 64px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+</style>
