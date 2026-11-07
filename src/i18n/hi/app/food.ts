@@ -1,0 +1,62 @@
+import type en from '../../en/app/food';
+import type { Widen } from '../../shape';
+
+const food: Widen<typeof en> = {
+  macros: { kcal: 'कैलोरी', protein: 'प्रोटीन', carbs: 'कार्ब्स', fat: 'फैट', fibre: 'फाइबर' },
+  ramadanMeals: { breakfast: 'सहरी', snacks: 'इफ्तार' },
+  totals: 'कुल',
+  copyYesterday: 'पिछले दिन का खाना कॉपी करें',
+  entry: '{g} g · {protein} g प्रोटीन',
+  remove: '{name} हटाएं',
+  addFood: '+ खाना जोड़ें',
+  picker: {
+    vrat: 'व्रत: सिर्फ व्रत का खाना दिख रहा है।',
+    search: 'खोजें: रोटी, दाल, पनीर, अंडा, चिकन…',
+    searchLabel: 'खाना खोजें',
+    recent: 'हाल के',
+    per100: '{kcal} kcal · {protein} g प्रोटीन / 100 g',
+    noMatch: 'कुछ नहीं मिला। नीचे इसे अपने खाने के रूप में जोड़ें।',
+    addOwn: 'अपना खाना जोड़ें',
+    cancel: 'रद्द करें',
+  },
+  amount: {
+    amount: 'मात्रा',
+    unit: 'यूनिट',
+    grams: 'ग्राम',
+    unitGrams: '{unit} ({g} g)',
+    summary: '{g} g: <b>{kcal} kcal</b>, {protein} g प्रोटीन, {carbs} g कार्ब्स, {fat} g फैट',
+    add: 'जोड़ें',
+    back: 'वापस',
+  },
+  custom: {
+    heading: '<b>आपका अपना खाना</b>, उसके लेबल या रेसिपी से एक सर्विंग',
+    name: 'नाम',
+    serving: 'सर्विंग (g)',
+    protein: 'प्रोटीन (g)',
+    carbs: 'कार्ब्स (g)',
+    fat: 'फैट (g)',
+    fibre: 'फाइबर (g)',
+    type: 'प्रकार',
+    diet: { vegan: 'वीगन', veg: 'शाकाहारी', egg: 'अंडे वाला', nonveg: 'मीट या मछली' },
+    vrat: 'व्रत के दिन खा सकते हैं',
+    save: 'खाना सेव करें',
+    cancel: 'रद्द करें',
+  },
+  plan: {
+    title: 'मेरे दिन का प्लान बनाएं',
+    none: 'इन खाने की पसंद के हिसाब से अभी कोई मील प्लान नहीं बनता। इसकी जगह नीचे हर मील में खाना जोड़ें।',
+    shuffle: 'बदलें',
+    vrat: 'व्रत: सिर्फ व्रत का खाना।',
+    mealTitle: '{meal}: {name}',
+    mealTotals: '{kcal} kcal · {protein} g प्रोटीन',
+    item: '{count} × {unit}, {g} g',
+    logged: 'लॉग हो गया',
+    log: { breakfast: 'नाश्ता लॉग करें', lunch: 'लंच लॉग करें', snacks: 'स्नैक्स लॉग करें', dinner: 'डिनर लॉग करें' },
+    logRamadan: { breakfast: 'सहरी लॉग करें', snacks: 'इफ्तार लॉग करें' },
+    totals: 'प्लान: <b>{kcal}</b> / {targetKcal} kcal, <b>{protein}</b> / {targetProtein} g प्रोटीन',
+    logDay: 'पूरा दिन लॉग करें',
+    dayLogged: 'पूरा दिन लॉग हो गया',
+  },
+};
+
+export default food;

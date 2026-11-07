@@ -1,0 +1,62 @@
+import type en from '../../en/app/food';
+import type { Widen } from '../../shape';
+
+const food: Widen<typeof en> = {
+  macros: { kcal: 'క్యాలరీలు', protein: 'ప్రోటీన్', carbs: 'కార్బ్స్', fat: 'ఫ్యాట్', fibre: 'ఫైబర్' },
+  ramadanMeals: { breakfast: 'సహరీ', snacks: 'ఇఫ్తార్' },
+  totals: 'మొత్తం',
+  copyYesterday: 'ముందు రోజు ఆహారాన్ని కాపీ చేయండి',
+  entry: '{g} g · {protein} g ప్రోటీన్',
+  remove: '{name} తీసివేయండి',
+  addFood: '+ ఆహారం జోడించండి',
+  picker: {
+    vrat: 'వ్రతం: వ్రతం ఆహారాలు మాత్రమే చూపిస్తున్నాం.',
+    search: 'సెర్చ్: చపాతీ, పప్పు, పనీర్, గుడ్డు, చికెన్…',
+    searchLabel: 'ఆహారాలు సెర్చ్ చేయండి',
+    recent: 'ఇటీవలివి',
+    per100: '{kcal} kcal · {protein} g ప్రోటీన్ / 100 g',
+    noMatch: 'ఏదీ దొరకలేదు. కింద మీ సొంత ఆహారంగా జోడించండి.',
+    addOwn: 'మీ సొంత ఆహారం జోడించండి',
+    cancel: 'రద్దు చేయండి',
+  },
+  amount: {
+    amount: 'పరిమాణం',
+    unit: 'యూనిట్',
+    grams: 'గ్రాములు',
+    unitGrams: '{unit} ({g} g)',
+    summary: '{g} g: <b>{kcal} kcal</b>, {protein} g ప్రోటీన్, {carbs} g కార్బ్స్, {fat} g ఫ్యాట్',
+    add: 'జోడించండి',
+    back: 'వెనక్కి',
+  },
+  custom: {
+    heading: '<b>మీ సొంత ఆహారం</b>, లేబుల్ లేదా రెసిపీ ప్రకారం ఒక సర్వింగ్‌గా',
+    name: 'పేరు',
+    serving: 'సర్వింగ్ (g)',
+    protein: 'ప్రోటీన్ (g)',
+    carbs: 'కార్బ్స్ (g)',
+    fat: 'ఫ్యాట్ (g)',
+    fibre: 'ఫైబర్ (g)',
+    type: 'రకం',
+    diet: { vegan: 'వీగన్', veg: 'శాకాహారం', egg: 'గుడ్డు ఉంది', nonveg: 'మాంసం లేదా చేప' },
+    vrat: 'వ్రతం రోజు తినవచ్చు',
+    save: 'ఆహారం సేవ్ చేయండి',
+    cancel: 'రద్దు చేయండి',
+  },
+  plan: {
+    title: 'నా రోజును ప్లాన్ చేయండి',
+    none: 'ఈ ఆహార ఎంపికలకు సరిపోయే మీల్ ప్లాన్ ఇంకా లేదు. బదులుగా కింద ప్రతి భోజనానికి ఆహారాలు జోడించండి.',
+    shuffle: 'మార్చండి',
+    vrat: 'వ్రతం: వ్రతం ఆహారాలు మాత్రమే.',
+    mealTitle: '{meal}: {name}',
+    mealTotals: '{kcal} kcal · {protein} g ప్రోటీన్',
+    item: '{count} × {unit}, {g} g',
+    logged: 'లాగ్ అయింది',
+    log: { breakfast: 'బ్రేక్‌ఫాస్ట్ లాగ్ చేయండి', lunch: 'లంచ్ లాగ్ చేయండి', snacks: 'స్నాక్స్ లాగ్ చేయండి', dinner: 'డిన్నర్ లాగ్ చేయండి' },
+    logRamadan: { breakfast: 'సహరీ లాగ్ చేయండి', snacks: 'ఇఫ్తార్ లాగ్ చేయండి' },
+    totals: 'ప్లాన్: <b>{kcal}</b> / {targetKcal} kcal, <b>{protein}</b> / {targetProtein} g ప్రోటీన్',
+    logDay: 'రోజంతా లాగ్ చేయండి',
+    dayLogged: 'రోజంతా లాగ్ అయింది',
+  },
+};
+
+export default food;

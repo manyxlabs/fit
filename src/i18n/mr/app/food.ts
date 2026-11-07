@@ -1,0 +1,62 @@
+import type en from '../../en/app/food';
+import type { Widen } from '../../shape';
+
+const food: Widen<typeof en> = {
+  macros: { kcal: 'कॅलरी', protein: 'प्रोटीन', carbs: 'कार्ब्स', fat: 'फॅट', fibre: 'फायबर' },
+  ramadanMeals: { breakfast: 'सहरी', snacks: 'इफ्तार' },
+  totals: 'एकूण',
+  copyYesterday: 'मागच्या दिवसाचे जेवण कॉपी करा',
+  entry: '{g} g · {protein} g प्रोटीन',
+  remove: '{name} काढा',
+  addFood: '+ पदार्थ जोडा',
+  picker: {
+    vrat: 'उपवास: फक्त उपवासाचे पदार्थ दाखवत आहे.',
+    search: 'शोधा: पोळी, वरण, पनीर, अंडे, चिकन…',
+    searchLabel: 'पदार्थ शोधा',
+    recent: 'अलीकडचे',
+    per100: '{kcal} kcal · {protein} g प्रोटीन / 100 g',
+    noMatch: 'काही सापडले नाही. खाली तुमचा स्वतःचा पदार्थ म्हणून जोडा.',
+    addOwn: 'तुमचा स्वतःचा पदार्थ जोडा',
+    cancel: 'रद्द करा',
+  },
+  amount: {
+    amount: 'प्रमाण',
+    unit: 'युनिट',
+    grams: 'ग्रॅम',
+    unitGrams: '{unit} ({g} g)',
+    summary: '{g} g: <b>{kcal} kcal</b>, {protein} g प्रोटीन, {carbs} g कार्ब्स, {fat} g फॅट',
+    add: 'जोडा',
+    back: 'मागे',
+  },
+  custom: {
+    heading: '<b>तुमचा स्वतःचा पदार्थ</b>, त्याच्या लेबल किंवा रेसिपीनुसार एक सर्व्हिंग',
+    name: 'नाव',
+    serving: 'सर्व्हिंग (g)',
+    protein: 'प्रोटीन (g)',
+    carbs: 'कार्ब्स (g)',
+    fat: 'फॅट (g)',
+    fibre: 'फायबर (g)',
+    type: 'प्रकार',
+    diet: { vegan: 'व्हेगन', veg: 'शाकाहारी', egg: 'अंडे आहे', nonveg: 'मांस किंवा मासे' },
+    vrat: 'उपवासाच्या दिवशी चालते',
+    save: 'पदार्थ सेव्ह करा',
+    cancel: 'रद्द करा',
+  },
+  plan: {
+    title: 'माझ्या दिवसाचा प्लॅन करा',
+    none: 'या आहाराच्या निवडींना बसणारा मील प्लॅन अजून नाही. त्याऐवजी खाली प्रत्येक जेवणात पदार्थ जोडा.',
+    shuffle: 'बदलून पाहा',
+    vrat: 'उपवास: फक्त उपवासाचे पदार्थ.',
+    mealTitle: '{meal}: {name}',
+    mealTotals: '{kcal} kcal · {protein} g प्रोटीन',
+    item: '{count} × {unit}, {g} g',
+    logged: 'नोंदवले',
+    log: { breakfast: 'नाश्ता नोंदवा', lunch: 'दुपारचे जेवण नोंदवा', snacks: 'स्नॅक्स नोंदवा', dinner: 'रात्रीचे जेवण नोंदवा' },
+    logRamadan: { breakfast: 'सहरी नोंदवा', snacks: 'इफ्तार नोंदवा' },
+    totals: 'प्लॅन: {targetKcal} पैकी <b>{kcal}</b> kcal, {targetProtein} पैकी <b>{protein}</b> g प्रोटीन',
+    logDay: 'पूर्ण दिवस नोंदवा',
+    dayLogged: 'पूर्ण दिवस नोंदवला',
+  },
+};
+
+export default food;

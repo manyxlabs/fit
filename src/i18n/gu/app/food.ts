@@ -1,0 +1,62 @@
+import type en from '../../en/app/food';
+import type { Widen } from '../../shape';
+
+const food: Widen<typeof en> = {
+  macros: { kcal: 'કેલરી', protein: 'પ્રોટીન', carbs: 'કાર્બ્સ', fat: 'ફેટ', fibre: 'ફાઇબર' },
+  ramadanMeals: { breakfast: 'સેહરી', snacks: 'ઇફ્તાર' },
+  totals: 'કુલ',
+  copyYesterday: 'આગલા દિવસનો ખોરાક કૉપી કરો',
+  entry: '{g} g · {protein} g પ્રોટીન',
+  remove: '{name} દૂર કરો',
+  addFood: '+ ખોરાક ઉમેરો',
+  picker: {
+    vrat: 'વ્રત: ફક્ત ફરાળી ખોરાક બતાવે છે.',
+    search: 'સર્ચ કરો: રોટલી, દાળ, પનીર, ઈંડું, ચિકન…',
+    searchLabel: 'ખોરાક સર્ચ કરો',
+    recent: 'તાજેતરના',
+    per100: '{kcal} kcal · {protein} g પ્રોટીન / 100 g',
+    noMatch: 'કંઈ મળ્યું નહીં. નીચે તમારા પોતાના ખોરાક તરીકે ઉમેરો.',
+    addOwn: 'તમારો પોતાનો ખોરાક ઉમેરો',
+    cancel: 'રદ કરો',
+  },
+  amount: {
+    amount: 'માત્રા',
+    unit: 'એકમ',
+    grams: 'ગ્રામ',
+    unitGrams: '{unit} ({g} g)',
+    summary: '{g} g: <b>{kcal} kcal</b>, {protein} g પ્રોટીન, {carbs} g કાર્બ્સ, {fat} g ફેટ',
+    add: 'ઉમેરો',
+    back: 'પાછા',
+  },
+  custom: {
+    heading: '<b>તમારો પોતાનો ખોરાક</b>, તેના લેબલ કે રેસિપી પ્રમાણે એક સર્વિંગ',
+    name: 'નામ',
+    serving: 'સર્વિંગ (g)',
+    protein: 'પ્રોટીન (g)',
+    carbs: 'કાર્બ્સ (g)',
+    fat: 'ફેટ (g)',
+    fibre: 'ફાઇબર (g)',
+    type: 'પ્રકાર',
+    diet: { vegan: 'વીગન', veg: 'શાકાહારી', egg: 'ઈંડાવાળું', nonveg: 'માંસ કે માછલી' },
+    vrat: 'વ્રતના દિવસે ખાઈ શકાય',
+    save: 'ખોરાક સેવ કરો',
+    cancel: 'રદ કરો',
+  },
+  plan: {
+    title: 'મારા દિવસનો પ્લાન',
+    none: 'આ ખોરાકની પસંદગીઓ સાથે હજી કોઈ મીલ પ્લાન બંધબેસતો નથી. તેના બદલે નીચે દરેક ભોજનમાં ખોરાક ઉમેરો.',
+    shuffle: 'બદલો',
+    vrat: 'વ્રત: ફક્ત ફરાળી ખોરાક.',
+    mealTitle: '{meal}: {name}',
+    mealTotals: '{kcal} kcal · {protein} g પ્રોટીન',
+    item: '{count} × {unit}, {g} g',
+    logged: 'લૉગ થયું',
+    log: { breakfast: 'બ્રેકફાસ્ટ લૉગ કરો', lunch: 'લંચ લૉગ કરો', snacks: 'સ્નૅક્સ લૉગ કરો', dinner: 'ડિનર લૉગ કરો' },
+    logRamadan: { breakfast: 'સેહરી લૉગ કરો', snacks: 'ઇફ્તાર લૉગ કરો' },
+    totals: 'પ્લાન: <b>{kcal}</b> / {targetKcal} kcal, <b>{protein}</b> / {targetProtein} g પ્રોટીન',
+    logDay: 'આખો દિવસ લૉગ કરો',
+    dayLogged: 'આખો દિવસ લૉગ થયો',
+  },
+};
+
+export default food;
