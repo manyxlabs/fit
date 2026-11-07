@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { ACTIVITY, RATES, type Activity, type Goal, type Sex } from '../lib/calc';
 import { EQUIPMENT, type Equipment } from '../data/exercises';
 import { DIETS, type Diet } from '../data/supplements';
 import { GOALS as PROGRAM_GOALS, LEVELS, PROGRAMS, programFor, programsFor, type Program, type ProgramId } from '../data/programs';
+import { CITIES, IF_WINDOWS, ifName, type CityId, type Fasting } from '../lib/fasting';
 import type { Profile } from './db';
 
 const GOALS: Record<Goal, string> = {
@@ -30,8 +31,10 @@ export function ProfileForm(props: { initial?: Profile; kg?: number; askWeight: 
   const [setup, setSetup] = useState<Equipment>(i?.setup ?? 'gym');
   const [days, setDays] = useState(i?.days ?? 4);
   const [program, setProgram] = useState(i?.program);
+  const [fast, setFast] = useState(i?.fasting?.mode ?? 'none');
+  const [city, setCity] = useState(i?.fasting && 'city' in i.fasting ? i.fasting.city : i?.fasting?.mode === 'ramadan' ? 'manual' : '');
 
-  function save(e: FormEvent<HTMLFormElement>) {
+  function save(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const num = (k: string) => Number(f.get(k));
@@ -49,6 +52,7 @@ export function ProfileForm(props: { initial?: Profile; kg?: number; askWeight: 
         program: program && programsFor(setup, days).includes(program) ? program : undefined,
         asian: f.get('asian') === 'on',
         tdeeOverride: i?.tdeeOverride,
+        fasting: fasting(f),
       },
       props.askWeight ? num('kg') : undefined,
     );
@@ -154,6 +158,69 @@ export function ProfileForm(props: { initial?: Profile; kg?: number; askWeight: 
         </label>
       </div>
       <ProgramPicker setup={setup} days={days} value={program} onChange={setProgram} />
+      <div className="grid two">
+        <label className="field">
+          Fasting
+          <select name="fasting" value={fast} onChange={(e) => setFast(e.target.value as typeof fast)}>
+            <option value="none">None</option>
+            <option value="if">Intermittent fasting</option>
+            <option value="ramadan">Ramadan</option>
+            <option value="navratri">Navratri (vrat food only)</option>
+          </select>
+        </label>
+        {fast === 'if' && (
+          <>
+            <label className="field">
+              Eating window
+              <select name="ifHours" defaultValue={i?.fasting?.mode === 'if' ? i.fasting.hours : 8}>
+                {IF_WINDOWS.map((h) => (
+                  <option key={h} value={h}>
+                    {ifName(h)}: eat within {h} hours
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              First meal at
+              <input name="ifStart" type="time" defaultValue={i?.fasting?.mode === 'if' ? i.fasting.start : '12:00'} required />
+            </label>
+          </>
+        )}
+        {fast === 'ramadan' && (
+          <label className="field">
+            Prayer times
+            <select name="city" value={city} onChange={(e) => setCity(e.target.value)} required>
+              <option value="" disabled>
+                Choose your city
+              </option>
+              {(Object.keys(CITIES) as CityId[]).map((c) => (
+                <option key={c} value={c}>
+                  {CITIES[c][0]}
+                </option>
+              ))}
+              <option value="manual">Enter times myself</option>
+            </select>
+          </label>
+        )}
+        {fast === 'ramadan' && city === 'manual' && (
+          <>
+            <label className="field">
+              Fajr (suhoor ends)
+              <input name="fajr" type="time" defaultValue={i?.fasting?.mode === 'ramadan' && 'fajr' in i.fasting ? i.fasting.fajr : undefined} required />
+            </label>
+            <label className="field">
+              Maghrib (iftar)
+              <input name="maghrib" type="time" defaultValue={i?.fasting?.mode === 'ramadan' && 'maghrib' in i.fasting ? i.fasting.maghrib : undefined} required />
+            </label>
+          </>
+        )}
+      </div>
+      {fast !== 'none' && (
+        <p className="hint">
+          Do not fast without a doctor's advice if you are pregnant or breastfeeding, diabetic on insulin or other glucose-lowering medicine, have or had an eating disorder, are under 18, or have kidney or heart disease.
+          Your calorie and protein targets stay the same; fasting only changes when you eat.
+        </p>
+      )}
       <label className="check">
         <input name="asian" type="checkbox" defaultChecked={i?.asian ?? true} />
         Use the Asian BMI cut-offs, which flag health risk at a lower BMI for South Asians
@@ -198,4 +265,13 @@ export function ProgramPicker(props: { setup: Equipment; days: number; value?: P
       <p className="hint">{shown.about}</p>
     </>
   );
+}
+
+function fasting(f: FormData): Fasting | undefined {
+  const mode = f.get('fasting');
+  const city = String(f.get('city'));
+  if (mode === 'if') return { mode, start: String(f.get('ifStart')), hours: Number(f.get('ifHours')) };
+  if (mode === 'ramadan') return city in CITIES ? { mode, city: city as CityId } : { mode, fajr: String(f.get('fajr')), maghrib: String(f.get('maghrib')) };
+  if (mode === 'navratri') return { mode };
+  return undefined;
 }

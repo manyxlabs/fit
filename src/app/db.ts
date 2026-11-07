@@ -4,6 +4,7 @@ import type { CheckIn, SetLog } from '../lib/coach';
 import type { Equipment, ExerciseId } from '../data/exercises';
 import type { Diet, SupplementId } from '../data/supplements';
 import type { Plan, ProgramId } from '../data/programs';
+import type { Fasting } from '../lib/fasting';
 
 export type Profile = {
   sex: Sex;
@@ -21,6 +22,7 @@ export type Profile = {
   asian: boolean;
   /** When set, replaces the formula's maintenance estimate. */
   tdeeOverride?: number;
+  fasting?: Fasting;
 };
 
 /** Per 100 g. Copied into each log entry, so later edits to a food never rewrite history. */
@@ -28,7 +30,9 @@ export type Nutrients = { kcal: number; protein: number; carbs: number; fat: num
 export type FoodRef = Nutrients & { name: string; diet: Diet };
 export type Meal = 'breakfast' | 'lunch' | 'snacks' | 'dinner';
 export type FoodEntry = { id?: number; date: string; meal: Meal; food: FoodRef; grams: number };
-export type CustomFood = FoodRef & { id?: number };
+export type CustomFood = FoodRef & { id?: number; vrat?: boolean };
+
+export const foodRef = (f: FoodRef): FoodRef => ({ name: f.name, diet: f.diet, kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fibre: f.fibre });
 
 export type Workout = {
   id?: number;
@@ -41,7 +45,8 @@ export type Workout = {
 /** `day` names the program day it completed, for activities logged from a run or yoga plan. */
 export type Activity_ = { id?: number; date: string; name: string; met: number; minutes: number; km?: number; day?: string };
 export type Measurement = { date: string; waist?: number; neck?: number; hip?: number; chest?: number; arm?: number; thigh?: number };
-export type Day = CheckIn & { steps?: number; waterMl?: number; supplements?: SupplementId[] };
+/** `vrat` is a one-day fast (Ekadashi and the like); `plan` is which meal plan variant Shuffle reached. */
+export type Day = CheckIn & { steps?: number; waterMl?: number; supplements?: SupplementId[]; vrat?: boolean; plan?: number };
 
 export type Settings = {
   profile?: Profile;

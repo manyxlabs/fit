@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+import foods from '../src/data/foods.json' with { type: 'json' };
 import { onboard, tab } from './helpers';
 
 test('a new user gets maintenance calories and macros from their details', async ({ page }) => {
@@ -95,4 +96,90 @@ test('a backup restores everything after the data is deleted', async ({ page }) 
   await page.locator('input[type=file]').setInputFiles(file);
   await tab(page, 'Today').click();
   await expect(page.getByRole('region', { name: 'Calories' }).getByText('2,672 kcal left')).toBeVisible();
+});
+
+test.describe('meal plans and fasting', () => {
+  // Fixed clocks below are Indian times, whatever zone the machine running the tests is in.
+  test.use({ timezoneId: 'Asia/Kolkata' });
+  const vratFoods = new Set(foods.filter((f) => 'vrat' in f && f.vrat).map((f) => f.name));
+  const totalsBar = (page: Page, name: string) => page.getByRole('region', { name: 'Totals' }).getByRole('progressbar', { name });
+
+  test('a vegetarian day plan meets the targets and logs in one tap', async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-07T09:00:00+05:30'));
+    await onboard(page);
+    await tab(page, 'Food').click();
+    const plan = page.getByRole('region', { name: 'Plan my day' });
+    const meals = plan.locator('.plan-meal h3');
+    await expect(meals).toHaveText([/^Breakfast: /, /^Lunch: /, /^Snacks: /, /^Dinner: /]);
+    const first = await meals.allInnerTexts();
+    for (const name of await plan.locator('.entries strong').allInnerTexts()) expect(['vegan', 'veg']).toContain(foods.find((f) => f.name === name)?.diet);
+
+    await plan.getByRole('button', { name: 'Log whole day' }).click();
+    await expect(plan.getByRole('button', { name: 'Whole day logged' })).toBeDisabled();
+    // 2,672 kcal within 5%, and at least 95% of 120 g protein.
+    const kcal = Number(await totalsBar(page, 'Calories').getAttribute('aria-valuenow'));
+    expect(kcal).toBeGreaterThanOrEqual(2538);
+    expect(kcal).toBeLessThanOrEqual(2806);
+    expect(Number(await totalsBar(page, 'Protein').getAttribute('aria-valuenow'))).toBeGreaterThanOrEqual(114);
+    await page.screenshot({ path: 'test-results/artifacts/plan.png', fullPage: true });
+
+    // The plan and its logged state survive a reload, so nothing can be logged twice.
+    await page.reload();
+    await expect(meals).toHaveText(first);
+    await expect(plan.getByRole('button', { name: 'Logged', exact: true })).toHaveCount(4);
+    await expect(totalsBar(page, 'Calories')).toHaveAttribute('aria-valuenow', String(kcal));
+
+    await plan.getByRole('button', { name: 'Shuffle' }).click();
+    await expect.poll(() => meals.allInnerTexts()).not.toEqual(first);
+    await expect(plan.getByRole('button', { name: 'Log whole day' })).toBeEnabled();
+  });
+
+  test('a vrat day offers only vrat foods', async ({ page }) => {
+    await onboard(page);
+    const vrat = page.getByLabel('Vrat today (Ekadashi or another fast day)');
+    // The box reflects the saved day, so it ticks once the write lands rather than on the click itself.
+    await vrat.click();
+    await expect(vrat).toBeChecked();
+    await tab(page, 'Food').click();
+    const plan = page.getByRole('region', { name: 'Plan my day' });
+    await expect(plan.getByText('Vrat: only vrat foods.')).toBeVisible();
+    const planned = await plan.locator('.entries strong').allInnerTexts();
+    expect(planned.length).toBeGreaterThan(0);
+    for (const name of planned) expect(vratFoods).toContain(name);
+
+    const breakfast = page.getByRole('region', { name: 'Breakfast' });
+    await breakfast.getByRole('button', { name: '+ Add food' }).click();
+    await expect(breakfast.getByText('Vrat: showing vrat foods only.')).toBeVisible();
+    for (const query of ['roti', 'paneer', 'aloo']) {
+      await breakfast.getByLabel('Search foods').fill(query);
+      const found = await breakfast.locator('.results button > span:first-child').allInnerTexts();
+      expect(found.length).toBeGreaterThan(0);
+      for (const name of found) expect(vratFoods).toContain(name);
+    }
+    await page.screenshot({ path: 'test-results/artifacts/vrat.png', fullPage: true });
+
+    // The toggle lasts one day.
+    await tab(page, 'Today').click();
+    await page.getByRole('button', { name: 'Previous day', exact: true }).click();
+    await expect(vrat).not.toBeChecked();
+  });
+
+  test('Today shows whether the intermittent fasting window is open', async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-07T14:00:00+05:30'));
+    await onboard(page);
+    await tab(page, 'More').click();
+    await page.getByRole('combobox', { name: 'Fasting', exact: true }).selectOption({ label: 'Intermittent fasting' });
+    await page.getByLabel('Eating window').selectOption({ label: '16:8: eat within 8 hours' });
+    await page.getByLabel('First meal at').fill('12:00');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await tab(page, 'Today').click();
+    const card = page.getByRole('region', { name: 'Fasting' });
+    await expect(card.getByRole('status')).toHaveText('Eating window open, closes at 8:00 pm');
+    await page.screenshot({ path: 'test-results/artifacts/fasting-open.png', fullPage: true });
+
+    await page.clock.setFixedTime(new Date('2026-11-07T22:00:00+05:30'));
+    await page.reload();
+    await expect(card.getByRole('status')).toHaveText('Fasting, eating window opens at 12:00 pm');
+    await page.screenshot({ path: 'test-results/artifacts/fasting-closed.png', fullPage: true });
+  });
 });

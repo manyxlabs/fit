@@ -24,12 +24,19 @@ function checkDiet(where, diet) {
   if (!DIETS.includes(diet)) fail(`${where}: diet must be one of ${DIETS.join(', ')}, got ${JSON.stringify(diet)}`);
 }
 
+// Only `true` is allowed, so a food is vrat-friendly only when someone said so.
+function checkVrat(where, vrat) {
+  if (vrat !== undefined && vrat !== true) fail(`${where}: vrat must be true or absent`);
+}
+
 const ingredients = new Map();
 for (const item of read('data/ingredients.json')) {
   const where = `ingredient ${JSON.stringify(item.key)}`;
   if (typeof item.key !== 'string' || !item.key) fail(`${where}: missing key`);
   if (ingredients.has(item.key)) fail(`${where}: duplicate key`);
   checkDiet(where, item.diet);
+  if (!Number.isInteger(item.fdcId) && !/^https:\/\//.test(item.source)) fail(`${where}: needs a USDA fdcId or a brand label source URL`);
+  checkVrat(where, item.vrat);
   for (const n of NUTRIENTS) {
     if (typeof item[n] !== 'number' || !(item[n] >= 0)) fail(`${where}: ${n} must be a non-negative number`);
   }
@@ -48,15 +55,16 @@ for (const item of read('data/ingredients.json')) {
 }
 
 const round = (value, n) => Number(value.toFixed(n));
-const food = ({ name, aliases, diet, units }, per100g) => ({
+const food = ({ name, aliases, diet, units }, per100g, vrat) => ({
   name,
   ...(aliases && { aliases }),
   diet,
+  ...(vrat && { vrat }),
   ...Object.fromEntries(NUTRIENTS.map((n) => [n, round(per100g[n], n === 'kcal' ? 0 : 1)])),
   units,
 });
 
-const foods = [...ingredients.values()].filter((item) => item.plain).map((item) => food(item, item));
+const foods = [...ingredients.values()].filter((item) => item.plain).map((item) => food(item, item, item.vrat));
 
 for (const recipe of read('data/recipes.json')) {
   const where = `recipe ${JSON.stringify(recipe.name)}`;
@@ -69,15 +77,18 @@ for (const recipe of read('data/recipes.json')) {
   if (!(recipe.cookedGrams > 0)) fail(`${where}: cookedGrams must be positive`);
   if (!Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) fail(`${where}: no ingredients`);
   const total = Object.fromEntries(NUTRIENTS.map((n) => [n, 0]));
+  if ('vrat' in recipe) fail(`${where}: vrat comes from its ingredients, do not set it`);
   let diet = 0;
+  let vrat = true;
   for (const [key, grams] of recipe.ingredients) {
     const item = ingredients.get(key) ?? fail(`${where}: unknown ingredient ${JSON.stringify(key)}`);
     if (!(grams > 0)) fail(`${where}: ${key} grams must be positive`);
     for (const n of NUTRIENTS) total[n] += (item[n] * grams) / 100;
     diet = Math.max(diet, DIETS.indexOf(item.diet));
+    vrat &&= item.vrat === true;
   }
   if (recipe.diet !== DIETS[diet]) fail(`${where}: diet is ${recipe.diet} but its ingredients make it ${DIETS[diet]}`);
-  foods.push(food(recipe, Object.fromEntries(NUTRIENTS.map((n) => [n, (total[n] / recipe.cookedGrams) * 100]))));
+  foods.push(food(recipe, Object.fromEntries(NUTRIENTS.map((n) => [n, (total[n] / recipe.cookedGrams) * 100])), vrat));
 }
 
 const names = new Set();
