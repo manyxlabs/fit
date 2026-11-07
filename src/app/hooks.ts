@@ -20,6 +20,16 @@ export function useAsync<T>(load: () => Promise<T>, deps: unknown[]): T | undefi
   return value;
 }
 
+/** The current time, refreshed every 30 seconds so time-of-day states turn over on their own. */
+export function useNow() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
 export const kcalOf = (e: FoodEntry) => (e.food.kcal * e.grams) / 100;
 
 export function totals(entries: FoodEntry[]) {
