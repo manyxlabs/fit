@@ -130,7 +130,8 @@ export function Today({ profile }: { profile: Profile }) {
           </div>
         </Card>
         <Card title={c.body.title}>
-          <div className="grid two">
+          {/* Stacked: the card is half a phone wide, too narrow for two fields in longer languages. */}
+          <div className="stack">
             <label className="field">
               {c.body.weight}
               <input
