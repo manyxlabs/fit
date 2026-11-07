@@ -241,3 +241,37 @@
   color: var(--muted);
   font-size: 0.9375rem;
 }
+
+.ex-top {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 24px;
+  align-items: center;
+  max-width: 44rem;
+}
+
+.facts {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.ex-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 28px 24px;
+}
+
+.ex-groups h2 {
+  margin-bottom: 8px;
+  font-size: 1.125rem;
+}

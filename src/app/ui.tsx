@@ -3,6 +3,9 @@ import { addDays } from './db';
 
 export const fmt = (n: number, digits = 0) => n.toLocaleString('en-IN', { maximumFractionDigits: digits, minimumFractionDigits: digits });
 
+/** Whole seconds as m:ss. */
+export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
 export function Card(props: { title: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <section className={`card glass ${props.className ?? ''}`} aria-label={props.title}>

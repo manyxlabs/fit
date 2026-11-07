@@ -9,6 +9,7 @@ import {
   calorieTarget,
   ffmi,
   healthyWeight,
+  loadFor,
   heartRateZones,
   macros,
   maxHeartRate,
@@ -264,7 +265,7 @@ export function OneRepMaxCalc() {
             {[1, 3, 5, 8, 10, 12, 15].map((r) => (
               <tr key={r}>
                 <td>{r}</td>
-                <td>{fmt(r === 1 ? max : max / (1 + r / 30), 1)} kg</td>
+                <td>{fmt(loadFor(max, r), 1)} kg</td>
               </tr>
             ))}
           </tbody>

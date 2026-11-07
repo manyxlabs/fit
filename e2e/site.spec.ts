@@ -20,6 +20,7 @@ test('the TDEE calculator matches the worked example', async ({ page }) => {
 });
 
 test('every page in the sitemap loads, links only to pages that exist, and fits a phone', async ({ page, request }) => {
+  test.setTimeout(300_000); // well over a hundred pages, each with a full-page screenshot
   const index = await (await request.get('/sitemap-index.xml')).text();
   const maps = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
   const pages = (await Promise.all(maps.map(async (m) => [...(await (await request.get(m)).text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((x) => new URL(x[1]).pathname)))).flat();

@@ -3,7 +3,7 @@ import type { Activity, Goal, Sex } from '../lib/calc';
 import type { CheckIn, SetLog } from '../lib/coach';
 import type { Equipment, ExerciseId } from '../data/exercises';
 import type { Diet, SupplementId } from '../data/supplements';
-import type { Slot } from '../data/programs';
+import type { Plan, ProgramId } from '../data/programs';
 
 export type Profile = {
   sex: Sex;
@@ -16,6 +16,8 @@ export type Profile = {
   diet: Diet;
   setup: Equipment;
   days: number;
+  /** Chosen in the profile; without it, the muscle program for the setup and days. */
+  program?: ProgramId;
   asian: boolean;
   /** When set, replaces the formula's maintenance estimate. */
   tdeeOverride?: number;
@@ -32,20 +34,24 @@ export type Workout = {
   id?: number;
   date: string;
   day: string;
-  exercises: { exercise: ExerciseId; range: [number, number]; planned: number; sets: SetLog[] }[];
+  /** `rir` is set where the load comes from the estimated one-rep max. */
+  exercises: { exercise: ExerciseId; range: [number, number]; planned: number; rir?: number; sets: SetLog[] }[];
 };
 
-export type Activity_ = { id?: number; date: string; name: string; met: number; minutes: number };
+/** `day` names the program day it completed, for activities logged from a run or yoga plan. */
+export type Activity_ = { id?: number; date: string; name: string; met: number; minutes: number; km?: number; day?: string };
 export type Measurement = { date: string; waist?: number; neck?: number; hip?: number; chest?: number; arm?: number; thigh?: number };
 export type Day = CheckIn & { steps?: number; waterMl?: number; supplements?: SupplementId[] };
 
 export type Settings = {
   profile?: Profile;
   /** The program as edited, else the template's. */
-  program?: { name: string; days: { name: string; slots: Slot[] }[] };
+  program?: Plan;
   deloadedOn?: string;
   /** The workout in progress, kept across reloads. */
   draft?: Workout;
+  /** The run or yoga session in progress, as timestamps so it survives a reload or the phone sleeping. */
+  timer?: { day: string; started: number; paused: number; pausedAt?: number };
 };
 
 interface Schema extends DBSchema {
