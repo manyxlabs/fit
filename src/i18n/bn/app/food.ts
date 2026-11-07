@@ -1,0 +1,62 @@
+import type en from '../../en/app/food';
+import type { Widen } from '../../shape';
+
+const food: Widen<typeof en> = {
+  macros: { kcal: 'ক্যালোরি', protein: 'প্রোটিন', carbs: 'কার্বস', fat: 'ফ্যাট', fibre: 'ফাইবার' },
+  ramadanMeals: { breakfast: 'সেহরি', snacks: 'ইফতার' },
+  totals: 'মোট',
+  copyYesterday: 'আগের দিনের খাবার কপি করুন',
+  entry: '{g} g · {protein} g প্রোটিন',
+  remove: '{name} সরান',
+  addFood: '+ খাবার যোগ করুন',
+  picker: {
+    vrat: 'ব্রত: শুধু ব্রতের খাবার দেখানো হচ্ছে।',
+    search: 'সার্চ: রুটি, ডাল, পনির, ডিম, চিকেন…',
+    searchLabel: 'খাবার সার্চ করুন',
+    recent: 'সাম্প্রতিক',
+    per100: '{kcal} kcal · {protein} g প্রোটিন / 100 g',
+    noMatch: 'কিছু মেলেনি। নিচে নিজের খাবার হিসেবে যোগ করুন।',
+    addOwn: 'নিজের খাবার যোগ করুন',
+    cancel: 'বাতিল',
+  },
+  amount: {
+    amount: 'পরিমাণ',
+    unit: 'একক',
+    grams: 'গ্রাম',
+    unitGrams: '{unit} ({g} g)',
+    summary: '{g} g: <b>{kcal} kcal</b>, {protein} g প্রোটিন, {carbs} g কার্বস, {fat} g ফ্যাট',
+    add: 'যোগ করুন',
+    back: 'পেছনে',
+  },
+  custom: {
+    heading: '<b>আপনার নিজের খাবার</b>, লেবেল বা রেসিপি থেকে এক সার্ভিং',
+    name: 'নাম',
+    serving: 'সার্ভিং (g)',
+    protein: 'প্রোটিন (g)',
+    carbs: 'কার্বস (g)',
+    fat: 'ফ্যাট (g)',
+    fibre: 'ফাইবার (g)',
+    type: 'ধরন',
+    diet: { vegan: 'ভেগান', veg: 'নিরামিষ', egg: 'ডিম আছে', nonveg: 'মাছ বা মাংস' },
+    vrat: 'ব্রতের দিন খাওয়া যায়',
+    save: 'খাবার সেভ করুন',
+    cancel: 'বাতিল',
+  },
+  plan: {
+    title: 'আমার দিনের প্ল্যান',
+    none: 'এই খাবারের পছন্দগুলোর সঙ্গে মেলে এমন কোনো মিল প্ল্যান এখনো নেই। তার বদলে নিচে প্রতিটি মিলে খাবার যোগ করুন।',
+    shuffle: 'বদলে দিন',
+    vrat: 'ব্রত: শুধু ব্রতের খাবার।',
+    mealTitle: '{meal}: {name}',
+    mealTotals: '{kcal} kcal · {protein} g প্রোটিন',
+    item: '{count} × {unit}, {g} g',
+    logged: 'লগ হয়েছে',
+    log: { breakfast: 'ব্রেকফাস্ট লগ করুন', lunch: 'লাঞ্চ লগ করুন', snacks: 'স্ন্যাকস লগ করুন', dinner: 'ডিনার লগ করুন' },
+    logRamadan: { breakfast: 'সেহরি লগ করুন', snacks: 'ইফতার লগ করুন' },
+    totals: 'প্ল্যান: <b>{kcal}</b> / {targetKcal} kcal, <b>{protein}</b> / {targetProtein} g প্রোটিন',
+    logDay: 'পুরো দিন লগ করুন',
+    dayLogged: 'পুরো দিন লগ হয়েছে',
+  },
+};
+
+export default food;

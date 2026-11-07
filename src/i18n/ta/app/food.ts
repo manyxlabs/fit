@@ -1,0 +1,62 @@
+import type en from '../../en/app/food';
+import type { Widen } from '../../shape';
+
+const food: Widen<typeof en> = {
+  macros: { kcal: 'கலோரி', protein: 'புரோட்டீன்', carbs: 'கார்ப்ஸ்', fat: 'கொழுப்பு', fibre: 'நார்ச்சத்து' },
+  ramadanMeals: { breakfast: 'ஸஹர்', snacks: 'இஃப்தார்' },
+  totals: 'மொத்தம்',
+  copyYesterday: 'முந்தைய நாளின் உணவை நகலெடு',
+  entry: '{g} g · {protein} g புரோட்டீன்',
+  remove: '{name} நீக்கு',
+  addFood: '+ உணவைச் சேர்',
+  picker: {
+    vrat: 'விரதம்: விரத உணவுகள் மட்டும்.',
+    search: 'தேடுங்கள்: சப்பாத்தி, பருப்பு, பனீர், முட்டை, சிக்கன்…',
+    searchLabel: 'உணவுகளைத் தேடு',
+    recent: 'சமீபத்தியவை',
+    per100: '{kcal} kcal · {protein} g புரோட்டீன் / 100 g',
+    noMatch: 'பொருத்தம் இல்லை. கீழே உங்கள் சொந்த உணவாகச் சேருங்கள்.',
+    addOwn: 'உங்கள் சொந்த உணவைச் சேர்',
+    cancel: 'ரத்து',
+  },
+  amount: {
+    amount: 'அளவு',
+    unit: 'அலகு',
+    grams: 'கிராம்',
+    unitGrams: '{unit} ({g} g)',
+    summary: '{g} g: <b>{kcal} kcal</b>, {protein} g புரோட்டீன், {carbs} g கார்ப்ஸ், {fat} g கொழுப்பு',
+    add: 'சேர்',
+    back: 'பின்செல்',
+  },
+  custom: {
+    heading: '<b>உங்கள் சொந்த உணவு</b>, லேபிள் அல்லது ரெசிபியின்படி ஒரு சர்விங்',
+    name: 'பெயர்',
+    serving: 'சர்விங் (g)',
+    protein: 'புரோட்டீன் (g)',
+    carbs: 'கார்ப்ஸ் (g)',
+    fat: 'கொழுப்பு (g)',
+    fibre: 'நார்ச்சத்து (g)',
+    type: 'வகை',
+    diet: { vegan: 'வீகன்', veg: 'சைவம்', egg: 'முட்டை உள்ளது', nonveg: 'இறைச்சி அல்லது மீன்' },
+    vrat: 'விரத நாளில் சாப்பிடலாம்',
+    save: 'உணவைச் சேமி',
+    cancel: 'ரத்து',
+  },
+  plan: {
+    title: 'என் நாளைத் திட்டமிடு',
+    none: 'இந்த உணவுத் தேர்வுகளுக்குப் பொருந்தும் உணவுத் திட்டம் இன்னும் இல்லை. அதற்குப் பதிலாக, கீழே ஒவ்வொரு வேளைக்கும் உணவுகளைச் சேருங்கள்.',
+    shuffle: 'மாற்றிப் பார்',
+    vrat: 'விரதம்: விரத உணவுகள் மட்டும்.',
+    mealTitle: '{meal}: {name}',
+    mealTotals: '{kcal} kcal · {protein} g புரோட்டீன்',
+    item: '{count} × {unit}, {g} g',
+    logged: 'பதிவானது',
+    log: { breakfast: 'காலை உணவைப் பதிவு செய்', lunch: 'மதிய உணவைப் பதிவு செய்', snacks: 'ஸ்நாக்ஸைப் பதிவு செய்', dinner: 'இரவு உணவைப் பதிவு செய்' },
+    logRamadan: { breakfast: 'ஸஹரைப் பதிவு செய்', snacks: 'இஃப்தாரைப் பதிவு செய்' },
+    totals: 'திட்டம்: <b>{kcal}</b> / {targetKcal} kcal, <b>{protein}</b> / {targetProtein} g புரோட்டீன்',
+    logDay: 'முழு நாளையும் பதிவு செய்',
+    dayLogged: 'முழு நாளும் பதிவானது',
+  },
+};
+
+export default food;
