@@ -24,8 +24,13 @@ const DEFAULTS: Saved = {
   active: false,
 };
 const c = t.more.reminders;
-/** Short weekday names, Sunday first, from a week that began on a Sunday. */
-const DAYS = Array.from({ length: 7 }, (_, i) => date(new Date(2023, 0, 1 + i, 12), { weekday: 'short' }));
+/** Weekday names, Sunday first, from a week that began on a Sunday. */
+const week = (weekday: 'narrow' | 'short' | 'long') => Array.from({ length: 7 }, (_, i) => date(new Date(2023, 0, 1 + i, 12), { weekday }));
+// Seven short names do not fit across a phone in some scripts (വ്യാഴം, ஞாயி.); the narrow ones do, and are
+// told apart wherever they are seven different syllables, as in Indian scripts, unlike S M T W T F S.
+const narrow = week('narrow');
+const DAYS = new Set(narrow).size === 7 ? narrow : week('short');
+const FULL = week('long');
 
 function load(): Saved {
   try {
@@ -169,6 +174,7 @@ export function RemindersCard() {
                   <label key={d}>
                     <input
                       type="checkbox"
+                      aria-label={FULL[d]}
                       checked={s.times.workout.days.includes(d)}
                       onChange={(e) =>
                         times({ workout: { ...s.times.workout, days: e.target.checked ? [...s.times.workout.days, d] : s.times.workout.days.filter((x) => x !== d) } })

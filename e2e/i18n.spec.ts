@@ -29,6 +29,14 @@ const ownText = (page: Page) =>
     return out.join('\n');
   });
 
+/** Elements reaching past the right edge of a 360px screen, to name what makes a page scroll sideways. */
+const pastEdge = (page: Page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('body *')]
+      .filter((e) => e.checkVisibility() && e.getBoundingClientRect().right > 361 && ![...e.children].some((c) => c.getBoundingClientRect().right > 361))
+      .map((e) => `${e.tagName.toLowerCase()}.${e.className}: ${e.textContent!.trim().slice(0, 40)}`),
+  );
+
 /** Elements whose text does not fit inside them at this width: buttons, tabs, links and headings. */
 const overflowing = (page: Page) =>
   page.evaluate(() =>
@@ -56,7 +64,7 @@ for (const l of OTHERS) {
       const alternates = await page.locator('link[rel=alternate][hreflang]').evaluateAll((ls) => ls.map((x) => x.getAttribute('hreflang')));
       expect(alternates.sort()).toEqual([...LOCALES, 'x-default'].sort());
       await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', `https://fit.manyxlabs.com${prefix(l)}${path}`);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth), path).toBeLessThanOrEqual(360);
+      expect(await pastEdge(page), path).toEqual([]);
       expect(await overflowing(page), path).toEqual([]);
       const text = await ownText(page);
       expect([...english].filter((s) => text.includes(s)), path).toEqual([]);
@@ -120,7 +128,7 @@ for (const l of OTHERS) {
       await page.reload();
       await expect(page.locator('html')).toHaveAttribute('lang', l);
       await expect(page.locator('.tabs [aria-current=page]')).toBeVisible();
-      expect(await page.evaluate(() => document.documentElement.scrollWidth), tab).toBeLessThanOrEqual(360);
+      expect(await pastEdge(page), tab).toEqual([]);
       expect(await overflowing(page), tab).toEqual([]);
       const text = await ownText(page);
       expect([...english].filter((s) => text.includes(s)), tab).toEqual([]);

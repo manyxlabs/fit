@@ -12,7 +12,7 @@ test('the BMI calculator uses the Asian cut-offs by default', async ({ page }) =
 
 test('the TDEE calculator matches the worked example', async ({ page }) => {
   await page.goto('/calculators/tdee/');
-  await page.getByLabel('Age').fill('25');
+  await page.getByLabel('Age', { exact: true }).fill('25');
   await page.getByLabel('Weight (kg)').fill('75');
   await page.getByLabel('Height (cm)').fill('175');
   await expect(page.getByText('1,724 kcal')).toBeVisible();
