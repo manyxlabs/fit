@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { EXERCISES, type ExerciseId } from '../data/exercises';
 import { bmi, bmiBand, ffmi, healthyWeight, navyBodyFat, trend } from '../lib/calc';
 import { bestE1rm } from '../lib/coach';
@@ -173,7 +173,7 @@ function WeightChart({ points }: { points: { date: string; kg: number; trend: nu
 function Measurements({ sex, last }: { sex: Profile['sex']; last?: Measurement }) {
   const bump = useBump();
   const [open, setOpen] = useState(false);
-  async function save(e: FormEvent<HTMLFormElement>) {
+  async function save(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const m: Measurement = { date: today() };

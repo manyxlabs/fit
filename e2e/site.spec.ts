@@ -24,6 +24,8 @@ test('every page in the sitemap loads, links only to pages that exist, and fits 
   const maps = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
   const pages = (await Promise.all(maps.map(async (m) => [...(await (await request.get(m)).text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((x) => new URL(x[1]).pathname)))).flat();
   expect(pages.length).toBeGreaterThan(20);
+  // Each page is loaded and screenshotted, so the time needed grows with the site; a fixed limit flakes on slow machines.
+  test.setTimeout(10_000 + pages.length * 3_000);
 
   await page.setViewportSize({ width: 360, height: 740 });
   const links = new Set<string>();
