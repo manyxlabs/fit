@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
+export const ARTIFACTS = 'test-results/artifacts';
 const year = new Date().getFullYear();
 export const tab = (page: Page, name: string) => page.getByRole('navigation', { name: 'App' }).getByRole('link', { name });
 
@@ -16,6 +17,7 @@ export async function onboard(page: Page, goal = 'Maintain', diet = 'Vegetarian'
   await page.getByRole('button', { name: 'Build my plan' }).click();
   await expect(page.getByRole('heading', { name: 'Today', exact: true })).toBeVisible();
 }
+
 /** Every row of one of the app's IndexedDB stores, as the page sees it. */
 export const rows = (page: Page, store: string) =>
   page.evaluate(async (store) => {

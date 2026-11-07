@@ -1,7 +1,11 @@
 import { defineConfig } from '@playwright/test';
 
+/** Specs that need the Worker run with playwright.server.config.ts, against `wrangler dev`. */
+export const SERVER_SPECS = /(sync|reminders|webpush)\.spec\.ts$/;
+
 export default defineConfig({
   testDir: 'e2e',
+  testIgnore: SERVER_SPECS,
   outputDir: 'test-results/playwright',
   use: {
     baseURL: process.env.BASE_URL ?? 'http://localhost:4350',

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { planDay, type PlannedMeal } from '../data/meals';
+import { planDay, type PlannedMeal } from '../data/meal-plans';
 import { db, foodRef, type Day, type FoodEntry, type Meal, type Profile } from './db';
 import { useBump, type Targets } from './hooks';
 import { Card, fmt } from './ui';
