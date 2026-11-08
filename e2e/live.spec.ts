@@ -1,6 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { chromium, expect, test, type Page } from '@playwright/test';
-import { addFood, breakfast, device, onboard, reopen, send, syncCard, synced, tab } from './helpers';
+import { addFood, breakfast, device, onboard, outsidePill, reopen, send, syncCard, synced, tab } from './helpers';
 
 // The deployed site. Every check cleans up what it made on the server: the sync room is deleted
 // with Turn off sync, the push subscription with Turn off reminders.
@@ -19,16 +19,23 @@ function problems(page: Page) {
 
 const PAGES = [
   ['home', '/', 'en'],
+  ['tdee', '/calculators/tdee/', 'en'],
+  ['guide', '/guides/fat-loss/', 'en'],
   ['hi-home', '/hi/', 'hi'],
+  ['hi-tdee', '/hi/calculators/tdee/', 'hi'],
   ['ta-home', '/ta/', 'ta'],
   ['ta-tdee', '/ta/calculators/tdee/', 'ta'],
+  ['ml-home', '/ml/', 'ml'],
+  ['ml-tdee', '/ml/calculators/tdee/', 'ml'],
   ['hi-privacy', '/hi/privacy/', 'hi'],
   ['app', '/app/', 'en'],
 ] as const;
 
 for (const [name, path, lang] of PAGES)
   test(`${path} loads in its language at phone and desktop width, light and dark, with nothing broken`, async ({ browser }) => {
-    for (const width of [360, 1280])
+    test.setTimeout(120_000);
+    // 432px is a common phone width, where the header once overflowed its pill.
+    for (const width of [320, 360, 432, 480, 1280])
       for (const scheme of ['light', 'dark'] as const) {
         const context = await browser.newContext({ viewport: { width, height: 800 }, colorScheme: scheme });
         const page = await context.newPage();
@@ -37,6 +44,7 @@ for (const [name, path, lang] of PAGES)
         await expect(page.locator('html')).toHaveAttribute('lang', lang);
         await page.evaluate(() => document.fonts.ready);
         expect(await page.evaluate(() => document.documentElement.scrollWidth), `${path} ${width}`).toBeLessThanOrEqual(width);
+        if (name !== 'app') expect(await outsidePill(page), `${path} ${width}`).toEqual([]);
         // Sections fade in as they scroll into view, so each is brought into view before the whole page is shot.
         for (const card of await page.locator('.reveal').all()) {
           await card.scrollIntoViewIfNeeded();
