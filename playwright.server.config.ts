@@ -14,6 +14,7 @@ export default defineConfig({
   ...base,
   testIgnore: undefined,
   testMatch: SERVER_SPECS,
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never', outputFolder: 'playwright-report/server' }]] : 'list',
   use: { ...base.use, baseURL: process.env.BASE_URL ?? `http://localhost:${port}` },
   webServer: process.env.BASE_URL
     ? undefined
