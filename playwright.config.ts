@@ -7,6 +7,8 @@ export default defineConfig({
   testDir: 'e2e',
   testIgnore: SERVER_SPECS,
   outputDir: 'test-results/playwright',
+  // CI keeps an HTML report as an artifact, traces and screenshots included, to read a failure from.
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: process.env.BASE_URL ?? 'http://localhost:4350',
     // Set CHROMIUM to a system browser where Playwright's own download is unavailable.
