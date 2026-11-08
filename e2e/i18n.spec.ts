@@ -3,7 +3,7 @@ import { LOCALES, NAMES, type Locale } from '../src/i18n/locales';
 import { REVIEWED } from '../src/i18n/review';
 import enSite from '../src/i18n/en/site';
 import enApp from '../src/i18n/en/app';
-import { onboard } from './helpers';
+import { onboard, outsidePill } from './helpers';
 
 const OTHERS = LOCALES.filter((l) => l !== 'en');
 const prefix = (l: Locale) => (l === 'en' ? '' : `/${l}`);
@@ -44,19 +44,6 @@ const overflowing = (page: Page) =>
       .filter((e) => e.checkVisibility() && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflow !== 'visible')
       .map((e) => e.textContent!.trim().slice(0, 60)),
   );
-
-/** The labels of navbar controls reaching past the glass pill they belong in. */
-const outsidePill = (page: Page) =>
-  page.evaluate(() => {
-    const bar = document.querySelector('.bar')!.getBoundingClientRect();
-    return [...document.querySelectorAll<HTMLElement>('.bar :is(a, summary, button)')]
-      .filter((e) => e.checkVisibility() && !e.closest('.sheet, .menu'))
-      .filter((e) => {
-        const r = e.getBoundingClientRect();
-        return r.left < bar.left - 0.5 || r.right > bar.right + 0.5 || r.top < bar.top - 0.5 || r.bottom > bar.bottom + 0.5;
-      })
-      .map((e) => e.getAttribute('aria-label') ?? e.textContent!.trim());
-  });
 
 async function shoot(page: Page, name: string) {
   for (const scheme of ['light', 'dark'] as const) {

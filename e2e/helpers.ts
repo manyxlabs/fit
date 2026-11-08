@@ -83,3 +83,16 @@ export async function reopen(page: Page) {
   await syncs(page, () => page.reload());
   await tab(page, 'Food').click();
 }
+
+/** The labels of navbar controls reaching past the glass pill they belong in. */
+export const outsidePill = (page: Page) =>
+  page.evaluate(() => {
+    const bar = document.querySelector('.bar')!.getBoundingClientRect();
+    return [...document.querySelectorAll<HTMLElement>('.bar :is(a, summary, button)')]
+      .filter((e) => e.checkVisibility() && !e.closest('.sheet, .menu'))
+      .filter((e) => {
+        const r = e.getBoundingClientRect();
+        return r.left < bar.left - 0.5 || r.right > bar.right + 0.5 || r.top < bar.top - 0.5 || r.bottom > bar.bottom + 0.5;
+      })
+      .map((e) => e.getAttribute('aria-label') ?? e.textContent!.trim());
+  });
