@@ -16,7 +16,8 @@ import { Card } from './ui';
 export function More({ profile }: { profile: Profile }) {
   const bump = useBump();
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string>();
+  // What the last restore did; it can take seconds with photos, so success is said too.
+  const [restored, setRestored] = useState<{ error?: boolean; text: string }>();
   const [withPhotos, setWithPhotos] = useState(true);
   const photoBytes = useAsync(async () => (await (await db).getAll('photos')).reduce((s, p) => s + p.blob.size, 0), []);
   const synced = useSyncState().on;
@@ -119,10 +120,10 @@ export function More({ profile }: { profile: Profile }) {
                 if (!file || !confirm(synced ? t.more.data.restoreConfirmSynced : t.more.data.restoreConfirm)) return;
                 try {
                   await restore(JSON.parse(await file.text()));
-                  setError(undefined);
+                  setRestored({ text: t.more.data.restored });
                   bump();
                 } catch (err) {
-                  setError(err instanceof BadBackup ? t.more.data.badBackup[err.code] : err instanceof SyntaxError ? t.more.data.notBackup : (err as Error).message);
+                  setRestored({ error: true, text: err instanceof BadBackup ? t.more.data.badBackup[err.code] : err instanceof SyntaxError ? t.more.data.notBackup : (err as Error).message });
                 }
               }}
             />
@@ -140,7 +141,11 @@ export function More({ profile }: { profile: Profile }) {
             {t.more.data.deleteAll}
           </button>
         </div>
-        {error && <p className="error">{error}</p>}
+        {restored && (
+          <p className={restored.error ? 'error' : 'hint'} role="status">
+            {restored.text}
+          </p>
+        )}
       </Card>
 
       <HealthImport />

@@ -24,6 +24,7 @@ const more: Widen<typeof en> = {
     restoreConfirm: 'यहां का सब कुछ इस बैकअप से बदल दें?',
     restoreConfirmSynced: 'यहां और आपके सिंक किए डिवाइस पर सब कुछ इस बैकअप से बदल दें?',
     notBackup: 'यह फाइल बैकअप नहीं है।',
+    restored: 'बैकअप रिस्टोर हो गया।',
     badBackup: { notFit: 'यह Fit का बैकअप नहीं है।', photo: 'इस बैकअप में एक फोटो खराब है।' },
     deleteAll: 'सब कुछ डिलीट करें',
     deleteConfirm: 'इस ब्राउज़र से आपका सारा डेटा डिलीट कर दें? इसे वापस नहीं लाया जा सकता।',

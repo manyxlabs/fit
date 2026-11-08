@@ -9,6 +9,8 @@ export default defineConfig({
   testIgnore: undefined,
   testMatch: LIVE_SPECS,
   workers: 1,
+  // Apart from the local suites' results, so a live run never wipes their failure evidence.
+  outputDir: 'test-results/live',
   use: { ...base.use, baseURL: process.env.BASE_URL ?? 'https://fit.manyxlabs.com' },
   webServer: undefined,
 });
