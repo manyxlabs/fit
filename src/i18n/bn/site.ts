@@ -10,6 +10,7 @@ const site: Site = {
     calculators: 'ক্যালকুলেটর',
     guides: 'গাইড',
     openApp: 'অ্যাপ খুলুন',
+    menu: 'মেনু',
     theme: 'থিম বদলান',
     toLight: 'লাইট থিমে যান',
     toDark: 'ডার্ক থিমে যান',

@@ -45,6 +45,19 @@ const overflowing = (page: Page) =>
       .map((e) => e.textContent!.trim().slice(0, 60)),
   );
 
+/** The labels of navbar controls reaching past the glass pill they belong in. */
+const outsidePill = (page: Page) =>
+  page.evaluate(() => {
+    const bar = document.querySelector('.bar')!.getBoundingClientRect();
+    return [...document.querySelectorAll<HTMLElement>('.bar :is(a, summary, button)')]
+      .filter((e) => e.checkVisibility() && !e.closest('.sheet, .menu'))
+      .filter((e) => {
+        const r = e.getBoundingClientRect();
+        return r.left < bar.left - 0.5 || r.right > bar.right + 0.5 || r.top < bar.top - 0.5 || r.bottom > bar.bottom + 0.5;
+      })
+      .map((e) => e.getAttribute('aria-label') ?? e.textContent!.trim());
+  });
+
 async function shoot(page: Page, name: string) {
   for (const scheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: scheme });
@@ -74,6 +87,41 @@ for (const l of OTHERS) {
     await shoot(page, `${l}-tdee-360`);
     await page.setViewportSize({ width: 1280, height: 800 });
     await shoot(page, `${l}-tdee-desktop`);
+  });
+}
+
+for (const l of LOCALES) {
+  test(`${NAMES[l]}: every navbar control sits inside its pill from 320px up, and on a phone the menu holds the links`, async ({ page }) => {
+    test.setTimeout(90_000);
+    // Guides and exercises are published in a language once its health copy is reviewed.
+    const paths = ['/', '/calculators/', '/calculators/tdee/', '/privacy/', ...(REVIEWED[l] ? ['/guides/', '/guides/fat-loss/', '/exercises/', '/exercises/back-squat/'] : [])];
+    for (const width of [320, 360, 432, 480, 768, 1280]) {
+      await page.setViewportSize({ width, height: 740 });
+      for (const path of paths) {
+        await page.goto(`${prefix(l)}${path}`);
+        expect(await outsidePill(page), `${path} at ${width}px`).toEqual([]);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${path} at ${width}px`).toBe(0);
+      }
+    }
+
+    await page.setViewportSize({ width: 432, height: 740 });
+    await page.goto(`${prefix(l)}/`);
+    const menu = page.locator('details.more');
+    await menu.locator('summary').click();
+    const sheet = menu.locator('.sheet');
+    await expect(sheet.getByRole('link')).toHaveCount(3);
+    const box = (await sheet.boundingBox())!;
+    expect(box.x >= 0 && box.x + box.width <= 432).toBe(true);
+    for (const scheme of ['light', 'dark'] as const) {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.screenshot({ path: `test-results/artifacts/i18n/navbar-${l}-432-${scheme}.png`, clip: { x: 0, y: 0, width: 432, height: box.y + box.height + 16 }, animations: 'disabled' });
+    }
+    await page.emulateMedia({ colorScheme: 'light' });
+    // Opening the language list closes the menu, and Escape closes the list again.
+    await page.locator('details.lang summary').click();
+    await expect(menu).not.toHaveAttribute('open', '');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('details.lang')).not.toHaveAttribute('open', '');
   });
 }
 

@@ -13,6 +13,7 @@ const site = {
     calculators: 'Calculators',
     guides: 'Guides',
     openApp: 'Open app',
+    menu: 'Menu',
     theme: 'Switch theme',
     toLight: 'Switch to light theme',
     toDark: 'Switch to dark theme',

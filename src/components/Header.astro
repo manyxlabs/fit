@@ -11,6 +11,10 @@ const { locale, path, t, href } = pageLocale(Astro.url);
 const target = (l: Locale) => localePath(l, locales.includes(l) ? path : '/');
 // Guides are health advice, published in a language only once reviewed; until then the English ones.
 const guidesHref = localePath(healthLocale(locale), '/guides/');
+const links = [
+  [href('/calculators/'), t.header.calculators],
+  [guidesHref, t.header.guides],
+] as const;
 ---
 
 <div class="progress" aria-hidden="true"></div>
@@ -22,10 +26,9 @@ const guidesHref = localePath(healthLocale(locale), '/guides/');
         Fit
       </a>
       <nav aria-label={t.header.nav}>
-        <a class="link wide" href={href('/calculators/')}>{t.header.calculators}</a>
-        <a class="link wide" href={guidesHref}>{t.header.guides}</a>
+        {links.map(([to, name]) => <a class="link" href={to}>{name}</a>)}
         <a class="link" href={appHref(locale)}>{t.header.openApp}</a>
-        <details class="lang" data-key={LANG_KEY}>
+        <details class="pop lang" data-key={LANG_KEY}>
           <summary aria-label={`${t.language}: ${NAMES[locale]}`}>
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <circle cx="12" cy="12" r="9"></circle>
@@ -54,6 +57,18 @@ const guidesHref = localePath(healthLocale(locale), '/guides/');
             <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"></path>
           </svg>
         </button>
+        <!-- The portfolio's phone menu: below 768px the text links, too wide in some scripts, move here. -->
+        <details class="pop more">
+          <summary aria-label={t.header.menu}>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+          </summary>
+          <div class="glass sheet">
+            {links.map(([to, name]) => <a href={to}>{name}</a>)}
+            <a class="btn primary" href={appHref(locale)}>{t.header.openApp}</a>
+          </div>
+        </details>
       </nav>
     </div>
   </div>
@@ -83,22 +98,30 @@ const guidesHref = localePath(healthLocale(locale), '/guides/');
   addEventListener('scroll', progress, { passive: true });
   addEventListener('resize', progress);
 
-  // A <details> menu opens and closes from the keyboard by itself; this closes it the way menus do.
-  const menu = document.querySelector<HTMLDetailsElement>('.lang')!;
-  for (const a of menu.querySelectorAll('a'))
+  const lang = document.querySelector<HTMLDetailsElement>('.lang')!;
+  for (const a of lang.querySelectorAll('a'))
     a.addEventListener('click', () => {
       // So the app, at one address for every language, opens in the one picked here.
       try {
-        localStorage.setItem(menu.dataset.key!, a.lang);
+        localStorage.setItem(lang.dataset.key!, a.lang);
       } catch {}
     });
+
+  // A <details> menu opens and closes from the keyboard by itself; this closes it the way menus do,
+  // and keeps only one open.
+  const pops = [...document.querySelectorAll<HTMLDetailsElement>('.pop')];
+  for (const pop of pops) {
+    pop.addEventListener('toggle', () => {
+      if (pop.open) for (const other of pops) if (other !== pop) other.open = false;
+    });
+    pop.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !pop.open) return;
+      pop.open = false;
+      pop.querySelector('summary')!.focus();
+    });
+  }
   document.addEventListener('click', (e) => {
-    if (!menu.contains(e.target as Node)) menu.open = false;
-  });
-  menu.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || !menu.open) return;
-    menu.open = false;
-    menu.querySelector('summary')!.focus();
+    for (const pop of pops) if (!pop.contains(e.target as Node)) pop.open = false;
   });
 </script>
 
@@ -173,22 +196,22 @@ const guidesHref = localePath(healthLocale(locale), '/guides/');
     color: rgb(var(--fg));
   }
 
-  @media (max-width: 479px) {
+  /* Every language's links fit beside the controls from 768px; below, they are in the menu. */
+  @media (max-width: 767px) {
     .link {
-      padding-inline: 10px;
+      display: none;
     }
   }
 
-  /* The narrowest phones drop it; the logo and the hero's button both lead there. */
-  @media (max-width: 419px) {
-    .wide {
+  @media (min-width: 768px) {
+    .more {
       display: none;
     }
   }
 
   /* The portfolio's theme button: a borderless round icon, tinted on hover. */
   .theme,
-  .lang summary {
+  .pop summary {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -207,12 +230,12 @@ const guidesHref = localePath(healthLocale(locale), '/guides/');
   }
 
   .theme:hover,
-  .lang summary:hover,
-  .lang[open] summary {
+  .pop summary:hover,
+  .pop[open] summary {
     background: rgb(var(--fg) / 0.1);
   }
 
-  :is(.theme, .lang) svg {
+  :is(.theme, .pop) svg {
     flex: none;
     fill: none;
     stroke: currentColor;
@@ -237,10 +260,13 @@ const guidesHref = localePath(healthLocale(locale), '/guides/');
 
   .lang summary {
     padding-inline: 10px;
+  }
+
+  .pop summary {
     list-style: none;
   }
 
-  .lang summary::-webkit-details-marker {
+  .pop summary::-webkit-details-marker {
     display: none;
   }
 
@@ -291,5 +317,37 @@ const guidesHref = localePath(healthLocale(locale), '/guides/');
   .menu a[aria-current] {
     color: rgb(var(--fg));
     font-weight: 600;
+  }
+
+  /* Under the whole bar, as the portfolio's phone menu sits under its pill; .bar is its containing block. */
+  .sheet {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: 0;
+    display: grid;
+    padding: 8px;
+    border-radius: 24px;
+    /* Inside the bar's glass, like the language list, so it needs its own ground. */
+    background: rgb(var(--ink));
+  }
+
+  .sheet a:not(.btn) {
+    padding: 12px 16px;
+    border-radius: 16px;
+    color: rgb(var(--muted));
+    text-decoration: none;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+  }
+
+  .sheet a:not(.btn):hover {
+    background: rgb(var(--fg) / 0.05);
+    color: rgb(var(--fg));
+  }
+
+  .sheet .btn {
+    margin-top: 8px;
   }
 </style>

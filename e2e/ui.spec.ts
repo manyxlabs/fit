@@ -41,7 +41,7 @@ test('cards fade in as they scroll into view, and with reduced motion nothing ev
   expect(await hidden()).toBe(0);
 });
 
-for (const width of [360, 1280])
+for (const width of [360, 432, 1280])
   test(`every page type in both themes at ${width}px, for comparing with the portfolio`, async ({ page }) => {
     test.setTimeout(90_000);
     await page.emulateMedia({ reducedMotion: 'reduce' });
