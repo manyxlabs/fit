@@ -95,6 +95,7 @@ test('a backup restores everything after the data is deleted', async ({ page }) 
   await onboard(page, 'Lose fat');
   await tab(page, 'More').click();
   await page.getByLabel('Restore a backup').setInputFiles(file);
+  await expect(page.getByRole('region', { name: 'Your data' }).getByRole('status')).toHaveText('Backup restored.');
   await tab(page, 'Today').click();
   await expect(page.getByRole('region', { name: 'Calories' }).getByText('2,672 kcal left')).toBeVisible();
 });

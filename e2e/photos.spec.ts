@@ -13,12 +13,19 @@ test('progress photos are stored small and without EXIF, compared, backed up and
   await tab(page, 'Progress').click();
   const card = page.getByRole('region', { name: 'Progress photos' });
   const date = card.getByLabel('Date', { exact: true });
+  /** Shrinking a 3200 x 2400 photo takes the CPU it takes; the slot is busy until it is stored. */
+  const stored = async (photos: number) => {
+    await expect(card.locator('.shot[aria-busy=true], .shot img')).not.toHaveCount(0);
+    await expect(card.locator('.shot[aria-busy=true]')).toHaveCount(0, { timeout: 30_000 });
+    await expect(card.getByRole('img')).toHaveCount(photos);
+  };
 
   await date.fill(iso(28));
   // 3200 x 2400 pixels, EXIF-rotated to portrait, with a GPS position.
   await card.getByLabel('Choose front photo').setInputFiles('e2e/fixtures/photo-before.jpg');
+  await stored(1);
   await expect(card.getByRole('img', { name: /^front on/ })).toBeVisible();
-  const stored = await page.evaluate(async () => {
+  const saved = await page.evaluate(async () => {
     const req = indexedDB.open('fit');
     const db = await new Promise<IDBDatabase>((ok) => (req.onsuccess = () => ok(req.result)));
     const get = db.transaction('photos').objectStore('photos').getAll();
@@ -26,12 +33,12 @@ test('progress photos are stored small and without EXIF, compared, backed up and
     const bmp = await createImageBitmap(photo.blob);
     return { type: photo.blob.type, w: bmp.width, h: bmp.height, exif: (await photo.blob.text()).includes('Exif') };
   });
-  expect(stored).toEqual({ type: 'image/jpeg', w: 1200, h: 1600, exif: false });
+  expect(saved).toEqual({ type: 'image/jpeg', w: 1200, h: 1600, exif: false });
 
   await date.fill(iso(0));
   await card.getByLabel('Take front photo').setInputFiles('e2e/fixtures/photo-after.jpg');
   await card.getByLabel('Choose side photo').setInputFiles('e2e/fixtures/photo-after.jpg');
-  await expect(card.getByRole('img')).toHaveCount(2);
+  await stored(2);
 
   const compare = page.getByRole('region', { name: 'Compare photos' });
   await expect(compare.getByRole('img', { name: /^Before/ })).toBeVisible();
@@ -60,6 +67,8 @@ test('progress photos are stored small and without EXIF, compared, backed up and
 
   await tab(page, 'More').click();
   await page.locator('input[type=file][accept*=json]').setInputFiles(file);
+  // Decoding the photos takes a moment; the app says when the restore is done.
+  await expect(page.getByRole('region', { name: 'Your data' }).getByRole('status')).toHaveText('Backup restored.', { timeout: 15_000 });
   await tab(page, 'Progress').click();
   await expect(card.getByRole('img')).toHaveCount(2);
   await card.getByRole('button', { name: /^\d+ \w+ \d{4}$/ }).first().click();

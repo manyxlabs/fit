@@ -37,18 +37,23 @@ export function Photos() {
   const photos = useAsync(async () => (await db).getAll('photos'), []);
   const [date, setDate] = useState(today());
   const [error, setError] = useState<string>();
+  // Shrinking a camera photo can take seconds on a slow phone; its slot says so meanwhile.
+  const [working, setWorking] = useState<Pose[]>([]);
   if (!photos) return null;
   const dates = [...new Set(photos.map((p) => p.date))].sort();
   const bytes = photos.reduce((s, p) => s + p.blob.size, 0);
 
   async function add(pose: Pose, file?: File) {
     if (!file) return;
+    setWorking((w) => [...w, pose]);
     try {
       await (await db).put('photos', { date, pose, blob: await toJpeg(file) });
       setError(undefined);
       bump();
     } catch {
       setError(c.photos.unreadable);
+    } finally {
+      setWorking((w) => w.filter((x) => x !== pose));
     }
   }
   async function remove(keys: [string, Pose][], ask: string) {
@@ -77,8 +82,8 @@ export function Photos() {
             );
             return (
               <figure key={pose}>
-                <label className="shot">
-                  {photo ? <Img blob={photo.blob} alt={fill(c.photos.alt, vars)} /> : <span>+</span>}
+                <label className="shot" aria-busy={working.includes(pose)}>
+                  {photo ? <Img blob={photo.blob} alt={fill(c.photos.alt, vars)} /> : <span className={working.includes(pose) ? 'text-sheen' : undefined}>+</span>}
                   {input(false)}
                 </label>
                 {photo && (

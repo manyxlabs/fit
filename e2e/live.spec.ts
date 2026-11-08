@@ -118,7 +118,8 @@ test('a reminder set in a real browser is sent by the production Worker through 
   const saved = page.waitForResponse((r) => r.url().endsWith('/api/push') && r.request().method() === 'PUT', { timeout: 90_000 });
   await card.getByRole('button', { name: 'Turn on reminders' }).click();
   const res = await saved;
-  expect(res.status(), await res.text()).toBe(200);
+  // 204 No Content on success; the reason is in the body only when it is refused.
+  expect(res.ok(), res.ok() ? '' : await res.text()).toBe(true);
   await expect(card.getByRole('status')).toHaveText('Reminders are on.');
   const sent = JSON.parse(puts.at(-1)!);
   expect(Object.keys(sent).sort()).toEqual(['lang', 'schedule', 'subscription', 'tz']);

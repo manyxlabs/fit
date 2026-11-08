@@ -25,6 +25,7 @@ export default {
     restoreConfirm: 'Replace everything here with this backup?',
     restoreConfirmSynced: 'Replace everything here and on your synced devices with this backup?',
     notBackup: 'That file is not a backup.',
+    restored: 'Backup restored.',
     badBackup: { notFit: 'This is not a Fit backup.', photo: 'This backup has a damaged photo.' },
     deleteAll: 'Delete everything',
     deleteConfirm: 'Delete all your data from this browser? This cannot be undone.',
