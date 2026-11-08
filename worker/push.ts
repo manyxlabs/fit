@@ -18,7 +18,8 @@ type Saved = { sub: Subscription; tz: string; lang?: Locale; schedule: Schedule;
 const STALE = 30 * 60_000;
 const MAX_BODY = 4096;
 // Every browser's push service; anything else would let the Worker be used to post at any URL.
-const SERVICES = /^(fcm\.googleapis\.com|android\.googleapis\.com|updates\.push\.services\.mozilla\.com|[\w-]+\.push\.apple\.com|[\w-]+\.notify\.windows\.com)$/;
+// Chromium builds without Google's API keys get endpoints on jmt<n>.google.com rather than fcm.googleapis.com.
+const SERVICES = /^(fcm\.googleapis\.com|android\.googleapis\.com|jmt\d+\.google\.com|updates\.push\.services\.mozilla\.com|[\w-]+\.push\.apple\.com|[\w-]+\.notify\.windows\.com)$/;
 
 /** Holds one browser's subscription, timezone, language and schedule, nothing else, and sends its reminders. */
 export class Reminder extends DurableObject<Env> {

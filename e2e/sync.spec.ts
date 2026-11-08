@@ -1,64 +1,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { expect, test, type Browser, type Page } from '@playwright/test';
-import { ARTIFACTS, onboard, tab } from './helpers';
+import { expect, test } from '@playwright/test';
+import { addFood, ARTIFACTS, breakfast, device, dinner, onboard, reopen, send, syncCard, synced, syncs, tab } from './helpers';
 
-// Everything the server received from or sent to one device, and how it addressed the room.
-type Wire = { bodies: string[]; room?: string; auth?: string };
 type Row = { id: string; at: number; dev: string; data: string };
-
-async function device(browser: Browser, width = 1100) {
-  const context = await browser.newContext({ viewport: { width, height: 900 } });
-  const page = await context.newPage();
-  const wire: Wire = { bodies: [] };
-  page.on('dialog', (d) => void d.accept());
-  page.on('request', (r) => {
-    const m = /\/api\/sync\/([\w-]{22})$/.exec(r.url());
-    if (!m) return;
-    wire.room = m[1];
-    wire.auth = r.headers().authorization;
-    wire.bodies.push(r.postData() ?? '');
-  });
-  page.on('response', async (r) => {
-    if (/\/api\/sync\//.test(r.url()) && r.request().method() === 'POST' && r.ok()) wire.bodies.push(await r.text());
-  });
-  return { context, page, wire };
-}
-
-const syncCard = (page: Page) => page.getByRole('region', { name: 'Sync' });
-const synced = (page: Page) => expect(syncCard(page).getByRole('status')).toHaveText(/^Synced at /, { timeout: 15_000 });
-const breakfast = (page: Page) => page.getByRole('region', { name: 'Breakfast' });
-const dinner = (page: Page) => page.getByRole('region', { name: 'Dinner' });
-
-async function addFood(page: Page, meal: 'Breakfast' | 'Dinner', search: string, name: RegExp) {
-  await tab(page, 'Food').click();
-  const card = page.getByRole('region', { name: meal });
-  await card.getByRole('button', { name: '+ Add food' }).click();
-  await card.getByLabel('Search foods').fill(search);
-  await card.getByRole('button', { name }).first().click();
-  await card.getByRole('button', { name: 'Add', exact: true }).click();
-  await expect(card.getByRole('button', { name: new RegExp(`^Remove ${name.source.slice(1)}`) })).toBeVisible();
-}
-
-/** Waits for a whole sync started by `action`, not the "Synced at" left from the one before. */
-async function syncs(page: Page, action: () => Promise<unknown>) {
-  const sent = page.waitForResponse((r) => /\/api\/sync\//.test(r.url()) && r.request().method() === 'POST');
-  await action();
-  await sent;
-  await synced(page);
-}
-
-/** Sends this device's changes now, with Sync now in More. */
-async function send(page: Page) {
-  await tab(page, 'More').click();
-  await syncs(page, () => syncCard(page).getByRole('button', { name: 'Sync now' }).click());
-}
-
-/** Reopens the app, as on picking the phone back up, and goes to Food once its startup sync is done. */
-async function reopen(page: Page) {
-  await tab(page, 'More').click();
-  await syncs(page, () => page.reload());
-  await tab(page, 'Food').click();
-}
 
 test('two devices pair, stay in step through edits, deletions and time offline, and the server stays blind', async ({ browser, request }) => {
   test.setTimeout(120_000);

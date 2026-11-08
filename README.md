@@ -61,6 +61,13 @@ npm run test:server  # sync, reminders and Web Push against wrangler dev, with a
 The server suite pairs two browsers, edits, deletes and goes offline, checks that the server holds no plaintext, and decrypts a real reminder sent to a local mock push service.
 Screenshots and JSON evidence go to `test-results/artifacts/`.
 
+After a deploy, check the live site end to end: its pages in each language, theme and size with no console errors, sync through the production Worker, and a reminder delivered by a real push service to a headed browser.
+It cleans up the sync room and the push subscription it makes.
+
+```sh
+DISPLAY=:99 npx playwright test -c playwright.live.config.ts   # screenshots in test-results/artifacts/live/
+```
+
 ## Deployment
 
 Deploy only after the change has been reviewed and approved:
